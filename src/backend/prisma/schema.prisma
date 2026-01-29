@@ -1,0 +1,62 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Change to your database (mysql, sqlite, etc.)
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(cuid())
+  name        String
+  email       String        @unique
+  discord     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  printJobs   PrintJob[]
+}
+
+model PrintJob {
+  id                    String    @id @default(cuid())
+  
+  // User information
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Part information
+  partName              String
+  quantity              Int       @default(1)
+  color                 String
+  material              String    // e.g., "PLA", "ABS", "PETG"
+  userSuppliedMaterial  Boolean   @default(false)
+  
+  // Special instructions
+  specialInstructions   String?   @db.Text
+  
+  // STL file information
+  stlUrl                String    @db.Text
+  
+  // Status tracking
+  status                JobStatus @default(PENDING)
+  
+  // Timestamps
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  completedAt           DateTime?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum JobStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  FAILED
+}
