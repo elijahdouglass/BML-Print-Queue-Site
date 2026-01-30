@@ -1,4 +1,4 @@
-import prisma from '../index';
+import prisma from '../lib/prisma';
 import { CreatePrintJobInput, UpdatePrintJobInput, UpdatePrintJobStatusInput } from '../schemas/validation';
 import { Prisma } from '@prisma/client';
 
