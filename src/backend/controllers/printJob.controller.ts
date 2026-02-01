@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import printJobService from '../services/printJob.service';
+import emailService from '../services/email.service';
 import {
   createPrintJobSchema,
   updatePrintJobSchema,
@@ -141,7 +142,64 @@ export class PrintJobController {
       const { id } = req.params;
       const validatedData = updatePrintJobStatusSchema.parse(req.body);
 
+      // Get the current job to check previous status and user info
+      const currentJob = await printJobService.getPrintJobById(id);
+      
+      if (!currentJob) {
+        return res.status(404).json({
+          success: false,
+          error: 'Print job not found',
+        });
+      }
+
+      const previousStatus = currentJob.status;
+      const newStatus = validatedData.status;
+
+      // Update the job status
       const printJob = await printJobService.updatePrintJobStatus(id, validatedData);
+
+      // Send email notifications based on status change
+      if (newStatus === 'COMPLETED' && previousStatus !== 'COMPLETED') {
+        // Send completion email (non-blocking)
+        emailService.sendJobCompletionEmail({
+          userEmail: currentJob.user.email,
+          userName: currentJob.user.name,
+          partName: currentJob.partName,
+          jobId: currentJob.id,
+          completedAt: new Date(),
+          material: currentJob.material,
+          color: currentJob.color,
+          quantity: currentJob.quantity,
+        }).then((sent) => {
+          if (sent) {
+            console.log(`✅ Completion email sent to ${currentJob.user.email} for job ${currentJob.id}`);
+          } else {
+            console.error(`❌ Failed to send completion email to ${currentJob.user.email} for job ${currentJob.id}`);
+          }
+        }).catch((err) => {
+          console.error(`❌ Error sending completion email:`, err);
+        });
+      } else if (newStatus === 'CANCELLED' && previousStatus !== 'CANCELLED') {
+        // Send cancellation email (non-blocking)
+        emailService.sendJobCancelledEmail({
+          userEmail: currentJob.user.email,
+          userName: currentJob.user.name,
+          partName: currentJob.partName,
+          jobId: currentJob.id,
+          completedAt: new Date(),
+          material: currentJob.material,
+          color: currentJob.color,
+          quantity: currentJob.quantity,
+        }).then((sent) => {
+          if (sent) {
+            console.log(`✅ Cancellation email sent to ${currentJob.user.email} for job ${currentJob.id}`);
+          } else {
+            console.error(`❌ Failed to send cancellation email to ${currentJob.user.email} for job ${currentJob.id}`);
+          }
+        }).catch((err) => {
+          console.error(`❌ Error sending cancellation email:`, err);
+        });
+      }
 
       res.status(200).json({
         success: true,

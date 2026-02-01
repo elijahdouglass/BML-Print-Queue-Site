@@ -5,7 +5,7 @@ VALUES
 (
   'user_1',
   'Alice Johnson',
-  'alice@example.com',
+  'elijahdouglass00@gmail.com',
   'alice#1234',
   NOW(),
   NOW()
@@ -13,7 +13,7 @@ VALUES
 (
   'user_2',
   'Bob Smith',
-  'bob@example.com',
+  'elijahdouglass00@gmail.com',
   NULL,
   NOW(),
   NOW()
