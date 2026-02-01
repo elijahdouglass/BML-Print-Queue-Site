@@ -172,12 +172,12 @@ export class PrintJobController {
           quantity: currentJob.quantity,
         }).then((sent) => {
           if (sent) {
-            console.log(`✅ Completion email sent to ${currentJob.user.email} for job ${currentJob.id}`);
+            console.log(`Completion email sent to ${currentJob.user.email} for job ${currentJob.id}`);
           } else {
-            console.error(`❌ Failed to send completion email to ${currentJob.user.email} for job ${currentJob.id}`);
+            console.error(`Failed to send completion email to ${currentJob.user.email} for job ${currentJob.id}`);
           }
         }).catch((err) => {
-          console.error(`❌ Error sending completion email:`, err);
+          console.error(`Error sending completion email:`, err);
         });
       } else if (newStatus === 'CANCELLED' && previousStatus !== 'CANCELLED') {
         // Send cancellation email (non-blocking)
@@ -192,12 +192,12 @@ export class PrintJobController {
           quantity: currentJob.quantity,
         }).then((sent) => {
           if (sent) {
-            console.log(`✅ Cancellation email sent to ${currentJob.user.email} for job ${currentJob.id}`);
+            console.log(`Cancellation email sent to ${currentJob.user.email} for job ${currentJob.id}`);
           } else {
-            console.error(`❌ Failed to send cancellation email to ${currentJob.user.email} for job ${currentJob.id}`);
+            console.error(`Failed to send cancellation email to ${currentJob.user.email} for job ${currentJob.id}`);
           }
         }).catch((err) => {
-          console.error(`❌ Error sending cancellation email:`, err);
+          console.error(`Error sending cancellation email:`, err);
         });
       }
 
