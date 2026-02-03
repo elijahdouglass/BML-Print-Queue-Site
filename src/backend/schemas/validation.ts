@@ -37,6 +37,14 @@ export const updatePrintJobSchema = z.object({
   status: JobStatus.optional(),
 });
 
+export const updateUserUsageSchema = z.object({
+  usage: z
+    .number()
+    .nonnegative('Usage must be a positive number')
+    .finite('Usage must be a finite number'),
+});
+
+export type UpdateUserUsageInput = z.infer<typeof updateUserUsageSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type CreatePrintJobInput = z.infer<typeof createPrintJobSchema>;
 export type UpdatePrintJobStatusInput = z.infer<typeof updatePrintJobStatusSchema>;

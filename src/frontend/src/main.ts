@@ -4,6 +4,7 @@ type User = {
   id: string
   name: string
   email: string
+  usage?: number
 }
 
 type PrintJob = {
@@ -44,7 +45,9 @@ const resolvedEmpty = document.getElementById('resolved-empty')!
 
 // Modal elements
 const modal = document.getElementById('job-modal')!
+const usageModal = document.getElementById('usage-modal')!
 const closeModalBtn = document.getElementById('close-modal')!
+const closeUsageModalBtn = document.getElementById('close-usage-modal')!
 const modalJobName = document.getElementById('modal-job-name')!
 const modalJobId = document.getElementById('modal-job-id')!
 const modalJobStatus = document.getElementById('modal-job-status')!
@@ -59,8 +62,15 @@ const startJobBtn = document.getElementById('start-job-btn')!
 const completeJobBtn = document.getElementById('complete-job-btn')!
 const cancelJobBtn = document.getElementById('cancel-job-btn')!
 
+// Usage modal elements
+const usageJobNameEl = document.getElementById('usage-job-name')!
+const usageInputEl = document.getElementById('usage-input') as HTMLInputElement
+const submitUsageBtn = document.getElementById('submit-usage-btn')!
+const skipUsageBtn = document.getElementById('skip-usage-btn')!
+
 let allJobs: PrintJob[] = []
 let currentJob: PrintJob | null = null
+let pendingStartJobId: string | null = null
 
 // Tab switching
 tabs.forEach(tab => {
@@ -85,6 +95,13 @@ modal.addEventListener('click', (e) => {
   }
 })
 
+closeUsageModalBtn.addEventListener('click', closeUsageModal)
+usageModal.addEventListener('click', (e) => {
+  if (e.target === usageModal) {
+    closeUsageModal()
+  }
+})
+
 downloadStlBtn.addEventListener('click', () => {
   if (currentJob) {
     downloadSTL(currentJob)
@@ -93,7 +110,9 @@ downloadStlBtn.addEventListener('click', () => {
 
 startJobBtn.addEventListener('click', async () => {
   if (currentJob && currentJob.status === 'PENDING') {
-    await updateJobStatus(currentJob.id, 'IN_PROGRESS')
+    // Store the job ID and open usage modal
+    pendingStartJobId = currentJob.id
+    openUsageModal(currentJob)
   }
 })
 
@@ -111,18 +130,99 @@ cancelJobBtn.addEventListener('click', async () => {
   }
 })
 
-function downloadSTL(job: PrintJob) {
-  // Construct STL file URL based on job ID
-  // Adjust this URL pattern based on your API structure
-  const stlUrl = `http://localhost:3000/api/jobs/${job.id}/stl`
+submitUsageBtn.addEventListener('click', async () => {
+  const usageValue = parseFloat(usageInputEl.value)
   
-  // Create a temporary anchor element and trigger download
-  const link = document.createElement('a')
-  link.href = stlUrl
-  link.download = `${job.partName.replace(/\s+/g, '_')}.stl`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  if (isNaN(usageValue) || usageValue < 0) {
+    alert('Please enter a valid filament usage amount (grams)')
+    return
+  }
+  
+  if (!pendingStartJobId || !currentJob) {
+    return
+  }
+  
+  // Disable button while processing
+  submitUsageBtn.disabled = true
+  submitUsageBtn.textContent = 'Saving...'
+  
+  try {
+    // First, add the usage to the user
+    await addUserUsage(currentJob.userId, usageValue)
+    
+    // Then, start the job (change to IN_PROGRESS)
+    await updateJobStatus(pendingStartJobId, 'IN_PROGRESS')
+    
+    // Close both modals
+    closeUsageModal()
+    closeModal()
+  } catch (err) {
+    console.error('Error starting job with usage:', err)
+    alert(`Error: ${err instanceof Error ? err.message : 'Failed to start job'}`)
+  } finally {
+    // Re-enable button
+    submitUsageBtn.disabled = false
+    submitUsageBtn.textContent = 'Submit & Start Job'
+    pendingStartJobId = null
+  }
+})
+
+skipUsageBtn.addEventListener('click', async () => {
+  if (!pendingStartJobId) {
+    return
+  }
+  
+  if (confirm('Are you sure you want to start this job without recording filament usage?')) {
+    try {
+      await updateJobStatus(pendingStartJobId, 'IN_PROGRESS')
+      closeUsageModal()
+      closeModal()
+    } catch (err) {
+      console.error('Error starting job:', err)
+      alert(`Error: ${err instanceof Error ? err.message : 'Failed to start job'}`)
+    } finally {
+      pendingStartJobId = null
+    }
+  }
+})
+
+async function addUserUsage(userId: string, usage: number) {
+  const res = await fetch(`http://localhost:3000/api/users/${userId}/usage/add`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ usage })
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to add user usage: ${res.status}`)
+  }
+
+  const json = await res.json()
+
+  if (!json.success) {
+    throw new Error('API returned failure when adding usage')
+  }
+
+  return json.data
+}
+
+function openUsageModal(job: PrintJob) {
+  usageJobNameEl.textContent = job.partName
+  usageInputEl.value = ''
+  usageInputEl.focus()
+  usageModal.classList.add('active')
+}
+
+function closeUsageModal() {
+  usageModal.classList.remove('active')
+  pendingStartJobId = null
+}
+
+function downloadSTL(job: PrintJob) {
+  // Open STL URL in new tab
+  window.open(job.stlUrl || `http://localhost:3000/api/jobs/${job.id}/stl`, '_blank')
 }
 
 async function updateJobStatus(jobId: string, newStatus: string) {
@@ -144,9 +244,6 @@ async function updateJobStatus(jobId: string, newStatus: string) {
     if (json.success) {
       // Reload all jobs to get updated data
       await loadPrintJobs()
-      
-      // Close modal after successful update
-      closeModal()
     } else {
       alert('Failed to update job status')
     }
@@ -314,12 +411,23 @@ function showError(message: string) {
 // Load jobs on page load
 loadPrintJobs()
 
-// Refresh every 10 seconds
-setInterval(loadPrintJobs, 10000)
+// Refresh every 30 seconds
+setInterval(loadPrintJobs, 30000)
 
-// Close modal with Escape key
+// Close modals with Escape key
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && modal.classList.contains('active')) {
-    closeModal()
+  if (e.key === 'Escape') {
+    if (usageModal.classList.contains('active')) {
+      closeUsageModal()
+    } else if (modal.classList.contains('active')) {
+      closeModal()
+    }
+  }
+})
+
+// Allow Enter key to submit usage
+usageInputEl.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    submitUsageBtn.click()
   }
 })

@@ -244,6 +244,10 @@
         position: relative;
       }
 
+      .modal-content.small {
+        max-width: 500px;
+      }
+
       .modal-header {
         background: var(--purdue-black);
         padding: 25px 30px;
@@ -422,6 +426,98 @@
       .tab-content.active {
         display: block;
       }
+
+      /* Usage Modal Styles */
+      .usage-input-group {
+        margin: 25px 0;
+      }
+
+      .usage-input-group label {
+        display: block;
+        color: var(--text-light);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .usage-input-group input {
+        width: 100%;
+        padding: 15px;
+        background: var(--purdue-medium-gray);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-light);
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+      }
+
+      .usage-input-group input:focus {
+        outline: none;
+        border-color: var(--purdue-gold);
+        background: var(--purdue-light-gray);
+      }
+
+      .usage-input-group .hint {
+        color: var(--text-gray);
+        font-size: 0.9rem;
+        margin-top: 8px;
+      }
+
+      .usage-modal-text {
+        color: var(--text-gray);
+        font-size: 1rem;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .usage-modal-job-name {
+        color: var(--purdue-gold);
+        font-weight: 700;
+        font-size: 1.2rem;
+      }
+
+      .usage-modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+      }
+
+      .usage-modal-buttons button {
+        flex: 1;
+        padding: 15px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .usage-modal-buttons button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .usage-modal-buttons .submit-btn {
+        background: var(--purdue-gold);
+        color: var(--purdue-black);
+      }
+
+      .usage-modal-buttons .submit-btn:hover:not(:disabled) {
+        background: #e5d4a8;
+        transform: translateY(-2px);
+      }
+
+      .usage-modal-buttons .skip-btn {
+        background: transparent;
+        border: 2px solid var(--border-color);
+        color: var(--text-gray);
+      }
+
+      .usage-modal-buttons .skip-btn:hover {
+        border-color: var(--text-light);
+        color: var(--text-light);
+      }
     </style>
   </head>
   <body>
@@ -566,6 +662,46 @@
                 Cancel Job
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filament Usage Modal -->
+    <div id="usage-modal" class="modal">
+      <div class="modal-content small">
+        <div class="modal-header">
+          <h2 class="modal-title">Record Filament Usage</h2>
+          <button class="close-btn" id="close-usage-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="usage-modal-text">
+            Starting job: <span class="usage-modal-job-name" id="usage-job-name">-</span>
+          </p>
+          <p class="usage-modal-text">
+            Enter the estimated filament usage for this print job.
+          </p>
+          
+          <div class="usage-input-group">
+            <label for="usage-input">Filament Usage (grams)</label>
+            <input 
+              type="number" 
+              id="usage-input" 
+              placeholder="0.0" 
+              step="0.1" 
+              min="0"
+              autofocus
+            />
+            <div class="hint">Enter the weight in grams (e.g., 125.5)</div>
+          </div>
+
+          <div class="usage-modal-buttons">
+            <button id="submit-usage-btn" class="submit-btn">
+              Submit & Start Job
+            </button>
+            <button id="skip-usage-btn" class="skip-btn">
+              Skip & Start
+            </button>
           </div>
         </div>
       </div>
