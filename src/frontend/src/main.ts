@@ -148,7 +148,6 @@ submitUsageBtn.addEventListener('click', async () => {
   submitUsageBtn.textContent = 'Saving...'
   
   try {
-    // Use the new start endpoint that checks usage limits
     const res = await fetch(`${API_URL}/${pendingStartJobId}/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

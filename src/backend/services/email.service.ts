@@ -32,7 +32,7 @@ class EmailService {
     const emailConfig: EmailConfig = {
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
+      secure: false,
       auth: {
         user: process.env.SMTP_USER || 'your-email@purdue.edu',
         pass: process.env.SMTP_PASS || 'your-password',
