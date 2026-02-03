@@ -1,6 +1,6 @@
 use bml;
 
-INSERT INTO users (id, name, email, discord, createdAt, updatedAt)
+INSERT INTO users (id, name, email, discord, createdAt, updatedAt, `usage`)
 VALUES
 (
   'user_1',
@@ -8,15 +8,17 @@ VALUES
   'elijahdouglass00@gmail.com',
   'alice#1234',
   NOW(),
-  NOW()
+  NOW(),
+  247.5
 ),
 (
   'user_2',
   'Bob Smith',
-  'elijahdouglass00@gmail.com',
+  'dummyemail@fake',
   NULL,
   NOW(),
-  NOW()
+  NOW(),
+  289.2
 );
 
 -- =========================
@@ -64,7 +66,7 @@ VALUES
   TRUE,
   NULL,
   'https://example.com/models/camera_mount.stl',
-  'IN_PROGRESS',
+  'PENDING',
   NOW(),
   NOW(),
   NULL
@@ -79,7 +81,7 @@ VALUES
   FALSE,
   'Print with brim to prevent warping',
   'https://example.com/models/drone_frame.stl',
-  'COMPLETED',
+  'PENDING',
   NOW(),
   NOW(),
   NOW()

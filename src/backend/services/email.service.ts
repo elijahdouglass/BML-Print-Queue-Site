@@ -147,7 +147,7 @@ class EmailService {
         </div>
         <div class="content">
           <p>Hello ${data.userName},</p>
-          <p>Great news! Your 3D print job has been completed and is ready for pickup at the Mailroom. Don’t know where the Mailroom is? The mailroom is in same hallway as the elevator, just keep going straight till you see a room with double doors on right!</p>
+          <p>Great news! Your 3D print job has been completed and is ready for pickup at the Mailroom. Don’t know where the Mailroom is? The Mailroom is in same hallway as the elevator, just keep going straight until you see a room with double doors on right!</p>
           
           <div class="info-box">
             <h3 style="margin-top: 0; color: #CFB991;">Job Details</h3>
@@ -187,7 +187,7 @@ Your 3D Print is Ready!
 
 Hello ${data.userName},
 
-Great news! Your 3D print job has been completed and is ready for pickup at the Bechtel Innovation Design Center.
+Great news! Your 3D print job has been completed and is ready for pickup at the Mailroom.
 
 Job Details:
 - Part Name: ${data.partName}
@@ -197,15 +197,10 @@ Job Details:
 - Quantity: ${data.quantity}
 - Completed: ${data.completedAt.toLocaleString()}
 
-Next Steps:
-- Pick up your print from the BML during operating hours
-- Bring your Purdue ID for verification
-- Contact us if you have any questions
-
-Thank you for using the Bechtel Innovation Design Center!
+Thank you for using Boilermaker Labs!
 
 ---
-Bechtel Innovation Design Center - Purdue University
+Boilermaker Labs - Purdue University
 This is an automated message. Please do not reply to this email.
     `;
   }

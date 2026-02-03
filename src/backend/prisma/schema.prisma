@@ -49,4 +49,5 @@ enum JobStatus {
   COMPLETED
   CANCELLED
   FAILED
+  WAITING
 }

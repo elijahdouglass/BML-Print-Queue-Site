@@ -176,6 +176,12 @@
         border: 1px solid var(--purdue-gold);
       }
 
+      .status.WAITING {
+        background: rgba(241, 196, 15, 0.2);
+        color: #f4d03f;
+        border: 1px solid #f4d03f;
+      }
+
       .status.IN_PROGRESS {
         background: rgba(52, 152, 219, 0.2);
         color: #5dade2;
@@ -531,6 +537,7 @@
         <button class="tab active" data-tab="pending">Pending</button>
         <button class="tab" data-tab="in-progress">In Progress</button>
         <button class="tab" data-tab="resolved">Resolved</button>
+        <button class="tab" data-tab="waiting">Waiting</button>
       </div>
 
       <div class="content">
@@ -548,6 +555,17 @@
             </svg>
             <h2>No Pending Jobs</h2>
             <p>All caught up! No jobs waiting to be processed.</p>
+          </div>
+        </div>
+
+        <div id="waiting-tab" class="tab-content">
+          <div class="job-grid" id="waiting-grid"></div>
+          <div id="waiting-empty" class="empty-state" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h2>No Waiting Jobs</h2>
+            <p>Jobs that would exceed the 300g usage limit appear here.</p>
           </div>
         </div>
 

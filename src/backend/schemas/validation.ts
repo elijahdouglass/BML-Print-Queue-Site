@@ -1,40 +1,49 @@
+// validation.ts
+
 import { z } from 'zod';
 
-export const JobStatus = z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'FAILED']);
+// Update JobStatus enum to include WAITING
+export const JobStatusEnum = z.enum([
+  'PENDING',
+  'WAITING',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'CANCELLED',
+  'FAILED'
+]);
 
 export const createUserSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  discord: z.string().optional(),
+  name: z.string().min(1, 'Name is required').max(255),
+  email: z.string().email('Invalid email address').max(255),
+  discord: z.string().max(255).optional(),
 });
 
 export const createPrintJobSchema = z.object({
-  userId: z.string().optional(),
-  userName: z.string().min(1, 'User name is required'),
-  userEmail: z.string().email('Invalid email address'),
-  userDiscord: z.string().optional(),
-  partName: z.string().min(1, 'Part name is required'),
-  quantity: z.number().int().positive().default(1),
-  color: z.string().min(1, 'Color is required'),
-  material: z.string().min(1, 'Material is required'),
+  userName: z.string().min(1, 'User name is required').max(255),
+  userEmail: z.string().email('Invalid email address').max(255),
+  userDiscord: z.string().max(255).optional(),
+  partName: z.string().min(1, 'Part name is required').max(255),
+  quantity: z.number().int().positive('Quantity must be positive').default(1),
+  color: z.string().min(1, 'Color is required').max(100),
+  material: z.string().min(1, 'Material is required').max(100),
   userSuppliedMaterial: z.boolean().default(false),
-  specialInstructions: z.string().optional(),
+  specialInstructions: z.string().max(5000).optional(),
   stlUrl: z.string().url('Invalid STL URL'),
 });
 
-export const updatePrintJobStatusSchema = z.object({
-  status: JobStatus,
+export const updatePrintJobSchema = z.object({
+  partName: z.string().min(1).max(255).optional(),
+  quantity: z.number().int().positive().optional(),
+  color: z.string().min(1).max(100).optional(),
+  material: z.string().min(1).max(100).optional(),
+  userSuppliedMaterial: z.boolean().optional(),
+  specialInstructions: z.string().max(5000).optional(),
+  stlUrl: z.string().url().optional(),
+  status: JobStatusEnum.optional(),
 });
 
-export const updatePrintJobSchema = z.object({
-  partName: z.string().min(1).optional(),
-  quantity: z.number().int().positive().optional(),
-  color: z.string().min(1).optional(),
-  material: z.string().min(1).optional(),
-  userSuppliedMaterial: z.boolean().optional(),
-  specialInstructions: z.string().optional(),
-  stlUrl: z.string().url().optional(),
-  status: JobStatus.optional(),
+export const updatePrintJobStatusSchema = z.object({
+  status: JobStatusEnum,
 });
 
 export const updateUserUsageSchema = z.object({
@@ -44,8 +53,9 @@ export const updateUserUsageSchema = z.object({
     .finite('Usage must be a finite number'),
 });
 
-export type UpdateUserUsageInput = z.infer<typeof updateUserUsageSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type CreatePrintJobInput = z.infer<typeof createPrintJobSchema>;
-export type UpdatePrintJobStatusInput = z.infer<typeof updatePrintJobStatusSchema>;
 export type UpdatePrintJobInput = z.infer<typeof updatePrintJobSchema>;
+export type UpdatePrintJobStatusInput = z.infer<typeof updatePrintJobStatusSchema>;
+export type UpdateUserUsageInput = z.infer<typeof updateUserUsageSchema>;
+export type JobStatus = z.infer<typeof JobStatusEnum>;

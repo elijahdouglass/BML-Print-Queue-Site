@@ -1,5 +1,8 @@
+// controllers/printJob.controller.ts
+
 import { Request, Response } from 'express';
 import printJobService from '../services/printJob.service';
+import userService from '../services/user.service';
 import emailService from '../services/email.service';
 import {
   createPrintJobSchema,
@@ -7,6 +10,9 @@ import {
   updatePrintJobStatusSchema,
 } from '../schemas/validation';
 import { ZodError } from 'zod';
+
+// Usage limit constant (300 grams)
+const USAGE_LIMIT = 300;
 
 export class PrintJobController {
   /**
@@ -134,7 +140,7 @@ export class PrintJobController {
   }
 
   /**
-   * Update print job status
+   * Update print job status with email notifications
    * PATCH /api/jobs/:id/status
    */
   async updatePrintJobStatus(req: Request, res: Response) {
@@ -224,6 +230,91 @@ export class PrintJobController {
   }
 
   /**
+   * Start a job with usage tracking
+   * POST /api/jobs/:id/start
+   */
+  async startJobWithUsage(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { usage } = req.body;
+
+      if (typeof usage !== 'number' || usage < 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid usage value. Must be a non-negative number.',
+        });
+      }
+
+      const currentJob = await printJobService.getPrintJobById(id);
+      
+      if (!currentJob) {
+        return res.status(404).json({
+          success: false,
+          error: 'Print job not found',
+        });
+      }
+
+      if (currentJob.status !== 'PENDING' && currentJob.status !== 'WAITING') {
+        return res.status(400).json({
+          success: false,
+          error: 'Job must be PENDING or WAITING to start',
+        });
+      }
+
+      // Get user's current usage
+      const user = await userService.getUserById(currentJob.userId);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found',
+        });
+      }
+
+      const currentUsage = user.usage || 0;
+      const newUsage = currentUsage + usage;
+
+      // Check if new usage would exceed the limit
+      if (newUsage > USAGE_LIMIT) {
+        // Set job to WAITING status
+        const waitingJob = await printJobService.updatePrintJobStatus(id, { 
+          status: 'WAITING' 
+        });
+
+        return res.status(200).json({
+          success: true,
+          data: waitingJob,
+          message: 'Job set to WAITING - user would exceed 300g limit',
+          userUsage: currentUsage,
+          estimatedUsage: usage,
+          totalUsage: newUsage,
+          usageLimit: USAGE_LIMIT,
+        });
+      }
+
+      // Add usage to user
+      await userService.addUserUsage(currentJob.userId, usage);
+
+      // Set job to IN_PROGRESS
+      const startedJob = await printJobService.updatePrintJobStatus(id, { 
+        status: 'IN_PROGRESS' 
+      });
+
+      res.status(200).json({
+        success: true,
+        data: startedJob,
+        message: 'Job started successfully',
+      });
+    } catch (error) {
+      console.error('Error starting job with usage:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to start job',
+      });
+    }
+  }
+
+  /**
    * Delete a single print job
    * DELETE /api/jobs/:id
    */
@@ -251,7 +342,6 @@ export class PrintJobController {
    */
   async deleteAllPrintJobs(req: Request, res: Response) {
     try {
-      // Require confirmation query parameter for safety
       const { confirm } = req.query;
 
       if (confirm !== 'true') {

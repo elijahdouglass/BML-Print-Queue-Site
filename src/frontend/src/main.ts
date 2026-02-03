@@ -17,12 +17,23 @@ type PrintJob = {
   status: string
   createdAt: string
   user: User
+  stlUrl?: string
 }
 
 type ApiResponse = {
   success: boolean
   data: PrintJob[]
   count?: number
+}
+
+type StartJobResponse = {
+  success: boolean
+  data: PrintJob
+  message: string
+  userUsage?: number
+  estimatedUsage?: number
+  totalUsage?: number
+  usageLimit?: number
 }
 
 const API_URL = 'http://localhost:3000/api/jobs'
@@ -35,11 +46,13 @@ const tabContents = document.querySelectorAll('.tab-content')
 
 // Tab grids
 const pendingGrid = document.getElementById('pending-grid')!
+const waitingGrid = document.getElementById('waiting-grid')!
 const inProgressGrid = document.getElementById('in-progress-grid')!
 const resolvedGrid = document.getElementById('resolved-grid')!
 
 // Empty states
 const pendingEmpty = document.getElementById('pending-empty')!
+const waitingEmpty = document.getElementById('waiting-empty')!
 const inProgressEmpty = document.getElementById('in-progress-empty')!
 const resolvedEmpty = document.getElementById('resolved-empty')!
 
@@ -77,11 +90,9 @@ tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     const tabName = tab.getAttribute('data-tab')!
     
-    // Update active tab
     tabs.forEach(t => t.classList.remove('active'))
     tab.classList.add('active')
     
-    // Update active content
     tabContents.forEach(content => content.classList.remove('active'))
     document.getElementById(`${tabName}-tab`)!.classList.add('active')
   })
@@ -90,27 +101,20 @@ tabs.forEach(tab => {
 // Modal controls
 closeModalBtn.addEventListener('click', closeModal)
 modal.addEventListener('click', (e) => {
-  if (e.target === modal) {
-    closeModal()
-  }
+  if (e.target === modal) closeModal()
 })
 
 closeUsageModalBtn.addEventListener('click', closeUsageModal)
 usageModal.addEventListener('click', (e) => {
-  if (e.target === usageModal) {
-    closeUsageModal()
-  }
+  if (e.target === usageModal) closeUsageModal()
 })
 
 downloadStlBtn.addEventListener('click', () => {
-  if (currentJob) {
-    downloadSTL(currentJob)
-  }
+  if (currentJob) downloadSTL(currentJob)
 })
 
 startJobBtn.addEventListener('click', async () => {
-  if (currentJob && currentJob.status === 'PENDING') {
-    // Store the job ID and open usage modal
+  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'WAITING')) {
     pendingStartJobId = currentJob.id
     openUsageModal(currentJob)
   }
@@ -123,7 +127,7 @@ completeJobBtn.addEventListener('click', async () => {
 })
 
 cancelJobBtn.addEventListener('click', async () => {
-  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS')) {
+  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS' || currentJob.status === 'WAITING')) {
     if (confirm(`Are you sure you want to cancel the job "${currentJob.partName}"?`)) {
       await updateJobStatus(currentJob.id, 'CANCELLED')
     }
@@ -138,29 +142,42 @@ submitUsageBtn.addEventListener('click', async () => {
     return
   }
   
-  if (!pendingStartJobId || !currentJob) {
-    return
-  }
+  if (!pendingStartJobId || !currentJob) return
   
-  // Disable button while processing
   submitUsageBtn.disabled = true
   submitUsageBtn.textContent = 'Saving...'
   
   try {
-    // First, add the usage to the user
-    await addUserUsage(currentJob.userId, usageValue)
-    
-    // Then, start the job (change to IN_PROGRESS)
-    await updateJobStatus(pendingStartJobId, 'IN_PROGRESS')
-    
-    // Close both modals
+    // Use the new start endpoint that checks usage limits
+    const res = await fetch(`${API_URL}/${pendingStartJobId}/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usage: usageValue })
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to start job: ${res.status}`)
+    }
+
+    const json: StartJobResponse = await res.json()
+
+    if (!json.success) {
+      throw new Error('API returned failure when starting job')
+    }
+
+    // Check if job was set to WAITING
+    if (json.data.status === 'WAITING') {
+      alert(`Job set to WAITING status.\n\nUser has ${json.userUsage}g used.\nThis job would add ${json.estimatedUsage}g.\nTotal would be ${json.totalUsage}g, exceeding the ${json.usageLimit}g limit.`)
+    }
+
+    // Reload jobs and close modals
+    await loadPrintJobs()
     closeUsageModal()
     closeModal()
   } catch (err) {
-    console.error('Error starting job with usage:', err)
+    console.error('Error starting job:', err)
     alert(`Error: ${err instanceof Error ? err.message : 'Failed to start job'}`)
   } finally {
-    // Re-enable button
     submitUsageBtn.disabled = false
     submitUsageBtn.textContent = 'Submit & Start Job'
     pendingStartJobId = null
@@ -168,9 +185,7 @@ submitUsageBtn.addEventListener('click', async () => {
 })
 
 skipUsageBtn.addEventListener('click', async () => {
-  if (!pendingStartJobId) {
-    return
-  }
+  if (!pendingStartJobId) return
   
   if (confirm('Are you sure you want to start this job without recording filament usage?')) {
     try {
@@ -186,28 +201,6 @@ skipUsageBtn.addEventListener('click', async () => {
   }
 })
 
-async function addUserUsage(userId: string, usage: number) {
-  const res = await fetch(`http://localhost:3000/api/users/${userId}/usage/add`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ usage })
-  })
-
-  if (!res.ok) {
-    throw new Error(`Failed to add user usage: ${res.status}`)
-  }
-
-  const json = await res.json()
-
-  if (!json.success) {
-    throw new Error('API returned failure when adding usage')
-  }
-
-  return json.data
-}
-
 function openUsageModal(job: PrintJob) {
   usageJobNameEl.textContent = job.partName
   usageInputEl.value = ''
@@ -221,7 +214,6 @@ function closeUsageModal() {
 }
 
 function downloadSTL(job: PrintJob) {
-  // Open STL URL in new tab
   window.open(job.stlUrl || `http://localhost:3000/api/jobs/${job.id}/stl`, '_blank')
 }
 
@@ -229,9 +221,7 @@ async function updateJobStatus(jobId: string, newStatus: string) {
   try {
     const res = await fetch(`${API_URL}/${jobId}/status`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
     })
 
@@ -242,7 +232,6 @@ async function updateJobStatus(jobId: string, newStatus: string) {
     const json = await res.json()
 
     if (json.success) {
-      // Reload all jobs to get updated data
       await loadPrintJobs()
     } else {
       alert('Failed to update job status')
@@ -254,13 +243,11 @@ async function updateJobStatus(jobId: string, newStatus: string) {
 }
 
 function updateActionButtons(status: string) {
-  // Reset all buttons
   startJobBtn.disabled = false
   completeJobBtn.disabled = false
   cancelJobBtn.disabled = false
 
-  // Enable/disable based on current status
-  if (status === 'PENDING') {
+  if (status === 'PENDING' || status === 'WAITING') {
     startJobBtn.disabled = false
     completeJobBtn.disabled = true
     cancelJobBtn.disabled = false
@@ -269,7 +256,6 @@ function updateActionButtons(status: string) {
     completeJobBtn.disabled = false
     cancelJobBtn.disabled = false
   } else {
-    // COMPLETED, CANCELLED, or FAILED
     startJobBtn.disabled = true
     completeJobBtn.disabled = true
     cancelJobBtn.disabled = true
@@ -280,10 +266,7 @@ function openModal(job: PrintJob) {
   currentJob = job
   modalJobName.textContent = job.partName
   modalJobId.textContent = job.id
-  
-  // Create status badge
   modalJobStatus.innerHTML = `<span class="status ${job.status}">${job.status}</span>`
-  
   modalJobMaterial.textContent = job.material
   modalJobColor.textContent = job.color
   modalJobQuantity.textContent = job.quantity.toString()
@@ -291,7 +274,6 @@ function openModal(job: PrintJob) {
   modalUserName.textContent = job.user.name
   modalUserEmail.textContent = job.user.email
   
-  // Update action button states based on job status
   updateActionButtons(job.status)
   
   modal.classList.add('active')
@@ -319,7 +301,6 @@ async function loadPrintJobs() {
       throw new Error('API returned failure')
     }
 
-    console.log('Loaded jobs:', json.data)
     allJobs = json.data || []
 
     hideLoading()
@@ -332,15 +313,15 @@ async function loadPrintJobs() {
 }
 
 function renderAllTabs() {
-  // Filter jobs by status
   const pendingJobs = allJobs.filter(job => job.status === 'PENDING')
+  const waitingJobs = allJobs.filter(job => job.status === 'WAITING')
   const inProgressJobs = allJobs.filter(job => job.status === 'IN_PROGRESS')
   const resolvedJobs = allJobs.filter(job => 
     job.status === 'COMPLETED' || job.status === 'CANCELLED' || job.status === 'FAILED'
   )
 
-  // Render each tab
   renderTab(pendingJobs, pendingGrid, pendingEmpty)
+  renderTab(waitingJobs, waitingGrid, waitingEmpty)
   renderTab(inProgressJobs, inProgressGrid, inProgressEmpty)
   renderTab(resolvedJobs, resolvedGrid, resolvedEmpty)
 }
@@ -408,13 +389,9 @@ function showError(message: string) {
   errorEl.style.display = 'block'
 }
 
-// Load jobs on page load
 loadPrintJobs()
-
-// Refresh every 30 seconds
 setInterval(loadPrintJobs, 30000)
 
-// Close modals with Escape key
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (usageModal.classList.contains('active')) {
@@ -425,9 +402,6 @@ document.addEventListener('keydown', (e) => {
   }
 })
 
-// Allow Enter key to submit usage
 usageInputEl.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    submitUsageBtn.click()
-  }
+  if (e.key === 'Enter') submitUsageBtn.click()
 })
