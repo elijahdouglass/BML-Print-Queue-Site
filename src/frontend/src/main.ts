@@ -18,6 +18,7 @@ type PrintJob = {
   createdAt: string
   user: User
   stlUrl?: string
+  specialInstructions?: string
 }
 
 type ApiResponse = {
@@ -70,6 +71,7 @@ const modalJobQuantity = document.getElementById('modal-job-quantity')!
 const modalJobCreated = document.getElementById('modal-job-created')!
 const modalUserName = document.getElementById('modal-user-name')!
 const modalUserEmail = document.getElementById('modal-user-email')!
+const modalSpecialInstructions = document.getElementById('modal-special-instructions')!
 const downloadStlBtn = document.getElementById('download-stl-btn')!
 const startJobBtn = document.getElementById('start-job-btn')!
 const completeJobBtn = document.getElementById('complete-job-btn')!
@@ -272,6 +274,7 @@ function openModal(job: PrintJob) {
   modalJobCreated.textContent = new Date(job.createdAt).toLocaleString()
   modalUserName.textContent = job.user.name
   modalUserEmail.textContent = job.user.email
+  modalSpecialInstructions.textContent = job.specialInstructions || 'N/A'
   
   updateActionButtons(job.status)
   
@@ -346,6 +349,8 @@ function createJobCard(job: PrintJob): HTMLElement {
   card.className = 'job-card'
   card.onclick = () => openModal(job)
   
+  const specialInstructionsText = job.specialInstructions || 'N/A'
+  
   card.innerHTML = `
     <div class="job-card-header">
       <div>
@@ -365,6 +370,9 @@ function createJobCard(job: PrintJob): HTMLElement {
     </div>
     <div class="job-card-detail">
       <strong>Quantity:</strong> ${job.quantity}
+    </div>
+    <div class="job-card-detail">
+      <strong>Instructions:</strong> ${specialInstructionsText}
     </div>
     <div class="job-card-detail">
       <strong>Created:</strong> ${new Date(job.createdAt).toLocaleDateString()}
