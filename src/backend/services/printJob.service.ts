@@ -31,6 +31,7 @@ export class PrintJobService {
         material: data.material,
         userSuppliedMaterial: data.userSuppliedMaterial,
         specialInstructions: data.specialInstructions,
+        pickupLocation: data.pickupLocation, // Added this field
         stlUrl: data.stlUrl,
       },
       include: {
@@ -163,10 +164,12 @@ export class PrintJobService {
    * Get job statistics
    */
   async getJobStatistics() {
-    const [total, pending, inProgress, completed, cancelled, failed] = await Promise.all([
+    const [total, pending, waiting, inProgress, actionNeeded, completed, cancelled, failed] = await Promise.all([
       prisma.printJob.count(),
       prisma.printJob.count({ where: { status: 'PENDING' } }),
+      prisma.printJob.count({ where: { status: 'WAITING' } }),
       prisma.printJob.count({ where: { status: 'IN_PROGRESS' } }),
+      prisma.printJob.count({ where: { status: 'ACTION_NEEDED' } }),
       prisma.printJob.count({ where: { status: 'COMPLETED' } }),
       prisma.printJob.count({ where: { status: 'CANCELLED' } }),
       prisma.printJob.count({ where: { status: 'FAILED' } }),
@@ -176,7 +179,9 @@ export class PrintJobService {
       total,
       byStatus: {
         pending,
+        waiting,
         inProgress,
+        actionNeeded,
         completed,
         cancelled,
         failed,

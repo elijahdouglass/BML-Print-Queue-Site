@@ -32,6 +32,7 @@ model PrintJob {
   userSuppliedMaterial Boolean   @default(false)
   specialInstructions  String?   @db.Text
   stlUrl               String    @db.Text
+  pickupLocation       String?   @db.Text
   status               JobStatus @default(PENDING)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -47,6 +48,7 @@ enum JobStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
+  ACTION_NEEDED
   CANCELLED
   FAILED
   WAITING

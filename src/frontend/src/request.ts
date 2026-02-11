@@ -9,6 +9,7 @@ type FormData = {
   userSuppliedMaterial: boolean;
   quantity: number;
   color: string;
+  pickupLocation: string;
   stlUrl: string;
   specialInstructions?: string;
 };
@@ -22,10 +23,11 @@ const firstNameInput = document.getElementById('first-name') as HTMLInputElement
 const lastNameInput = document.getElementById('last-name') as HTMLInputElement;
 const emailInput = document.getElementById('email') as HTMLInputElement;
 const partNameInput = document.getElementById('part-name') as HTMLInputElement;
-const materialSelect = document.getElementById('material') as HTMLSelectElement;
+const materialInput = document.getElementById('material') as HTMLInputElement;
 const userSuppliedRadios = document.getElementsByName('user-supplied') as NodeListOf<HTMLInputElement>;
 const quantityInput = document.getElementById('quantity') as HTMLInputElement;
-const colorSelect = document.getElementById('color') as HTMLSelectElement;
+const colorInput = document.getElementById('color') as HTMLInputElement;
+const pickupLocationInput = document.getElementById('pickup-location') as HTMLInputElement;
 const discordInput = document.getElementById('discord-id') as HTMLInputElement;
 const stlFileInput = document.getElementById('stl-file') as HTMLInputElement;
 const specialInstructionsTextarea = document.getElementById('special-instructions') as HTMLTextAreaElement;
@@ -118,10 +120,11 @@ form.addEventListener('submit', async (e) => {
       userEmail: email,
       userDiscord: discordInput.value.trim() || undefined,
       partName: partNameInput.value.trim(),
-      material: materialSelect.value,
+      material: materialInput.value.trim(),
       userSuppliedMaterial: userSuppliedMaterial,
       quantity: parseInt(quantityInput.value, 10),
-      color: colorSelect.value,
+      color: colorInput.value.trim(),
+      pickupLocation: pickupLocationInput.value.trim(),
       stlUrl: stlUrl,
       specialInstructions: specialInstructionsTextarea.value.trim() || undefined,
     };
@@ -143,7 +146,7 @@ form.addEventListener('submit', async (e) => {
     const result = await response.json();
     
     if (result.success) {
-      showSuccess('Print job submitted successfully! You will be notified via Discord when your job is ready.');
+      showSuccess('Print job submitted successfully! You will be notified via email when your job is ready.');
       
       // Reset form
       form.reset();
@@ -155,7 +158,7 @@ form.addEventListener('submit', async (e) => {
       
       // Optionally redirect after a delay
       setTimeout(() => {
-        // window.location.href = '/queue.html'; // Uncomment to redirect to queue page
+        // window.location.href = '/'; // Uncomment to redirect to home page
       }, 3000);
     } else {
       throw new Error(result.error || 'Failed to submit print job');

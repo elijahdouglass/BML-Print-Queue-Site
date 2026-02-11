@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "dev": "concurrently \"cd src/backend && npm run dev\" \"cd src/frontend && npm run dev\""
+  },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/dotenv": "^6.1.1",

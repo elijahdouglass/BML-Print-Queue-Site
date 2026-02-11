@@ -306,7 +306,6 @@
     <div class="container">
       <div class="header">
         <h1>Submit Print Job Request</h1>
-        <p>Boilermaker Labs - Purdue University</p>
       </div>
 
       <div class="form-container">
@@ -357,17 +356,16 @@
             />
           </div>
 
-          <!-- Material -->
+          <!-- Material (Text Input) -->
           <div class="form-group">
             <label for="material">Material <span class="required">*</span></label>
-            <select id="material" required>
-              <option value="">Select Material</option>
-              <option value="PLA">PLA</option>
-              <option value="ABS">ABS</option>
-              <option value="PETG">PETG</option>
-              <option value="TPU">TPU</option>
-              <option value="NYLON">Nylon</option>
-            </select>
+            <input 
+              type="text" 
+              id="material" 
+              placeholder="e.g., PLA, ABS, PETG, TPU, Nylon" 
+              required
+            />
+            <span class="hint">Common materials: PLA, ABS, PETG, TPU, Nylon</span>
           </div>
 
           <!-- User Supplied Material -->
@@ -399,24 +397,42 @@
             <span class="hint">Number of copies to print</span>
           </div>
 
-          <!-- Requested Color -->
+          <!-- Requested Color (Text Input) -->
           <div class="form-group">
             <label for="color">Requested Color <span class="required">*</span></label>
-            <select id="color" required>
-              <option value="">Select Color</option>
-              <option value="Black">Black (ABS, PLA, PETG)</option>
-              <option value="Blue">Blue (ABS)</option>
-              <option value="Gold">Gold (PLA)</option>
-              <option value="Green">Green (ABS, PLA)</option>
-              <option value="Orange">Orange (PLA)</option>
-              <option value="Pink">Pink (PLA)</option>
-              <option value="Purple">Purple (PLA)</option>
-              <option value="Red">Red (ABS, PETG)</option>
-              <option value="Silver">Silver (PLA)</option>
-              <option value="White">White (ABS, PETG)</option>
-              <option value="Yellow">Yellow (PLA)</option>
-            </select>
-            <span class="hint">Color is not guaranteed</span>
+            <input 
+              type="text" 
+              id="color" 
+              placeholder="e.g., Black, Blue, Red, Green" 
+              required
+            />
+            <span class="hint">Color is not guaranteed and depends on availability</span>
+          </div>
+
+          <!-- Pickup Location -->
+          <div class="form-group">
+            <label for="pickup-location">Pickup Location <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="pickup-location" 
+              placeholder="e.g. KNOY 155 or Mailroom" 
+              required
+            />
+            <span class="hint">Location where you'll pick up your completed print</span>
+          </div>
+
+          <!-- Discord Notice -->
+          <div class="discord-notice">
+            <h3>Discord Required</h3>
+            <p>
+              You must join Discord, accept the rules, and change your username to match 
+              your student username in order to print your files at Boilermaker Labs. 
+              Communication will be handled through Discord channels.
+            </p>
+            <p>
+              If you are not a member, join Discord here: 
+              <a href="https://discord.gg/FMMeCsgHZz" target="_blank">https://discord.gg/FMMeCsgHZz </a>
+            </p>
           </div>
 
           <!-- Discord ID -->
@@ -427,7 +443,7 @@
               id="discord-id" 
               placeholder="Your Discord username" 
             />
-            <span class="hint">Your Discord username (must match student username)</span>
+            <span class="hint">Your Discord username</span>
           </div>
 
           <!-- Upload STL File -->

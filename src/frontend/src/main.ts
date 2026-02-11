@@ -14,11 +14,12 @@ type PrintJob = {
   quantity: number
   color: string
   material: string
+  pickupLocation?: string
   status: string
   createdAt: string
+  specialInstructions?: string
   user: User
   stlUrl?: string
-  specialInstructions?: string
 }
 
 type ApiResponse = {
@@ -34,7 +35,7 @@ type StartJobResponse = {
   userUsage?: number
   estimatedUsage?: number
   totalUsage?: number
-  usageLimit?: number
+  usageLimit?: number 
 }
 
 const API_URL = 'http://localhost:3000/api/jobs'
@@ -47,12 +48,14 @@ const tabContents = document.querySelectorAll('.tab-content')
 
 // Tab grids
 const pendingGrid = document.getElementById('pending-grid')!
+const actionNeededGrid = document.getElementById('action-needed-grid')!
 const waitingGrid = document.getElementById('waiting-grid')!
 const inProgressGrid = document.getElementById('in-progress-grid')!
 const resolvedGrid = document.getElementById('resolved-grid')!
 
 // Empty states
 const pendingEmpty = document.getElementById('pending-empty')!
+const actionNeededEmpty = document.getElementById('action-needed-empty')!
 const waitingEmpty = document.getElementById('waiting-empty')!
 const inProgressEmpty = document.getElementById('in-progress-empty')!
 const resolvedEmpty = document.getElementById('resolved-empty')!
@@ -67,6 +70,7 @@ const modalJobId = document.getElementById('modal-job-id')!
 const modalJobStatus = document.getElementById('modal-job-status')!
 const modalJobMaterial = document.getElementById('modal-job-material')!
 const modalJobColor = document.getElementById('modal-job-color')!
+const modalJobPickup = document.getElementById('modal-job-pickup')!
 const modalJobQuantity = document.getElementById('modal-job-quantity')!
 const modalJobCreated = document.getElementById('modal-job-created')!
 const modalUserName = document.getElementById('modal-user-name')!
@@ -75,6 +79,7 @@ const modalSpecialInstructions = document.getElementById('modal-special-instruct
 const downloadStlBtn = document.getElementById('download-stl-btn')!
 const startJobBtn = document.getElementById('start-job-btn')!
 const completeJobBtn = document.getElementById('complete-job-btn')!
+const actionNeededBtn = document.getElementById('action-needed-btn')!
 const cancelJobBtn = document.getElementById('cancel-job-btn')!
 
 // Usage modal elements
@@ -128,8 +133,16 @@ completeJobBtn.addEventListener('click', async () => {
   }
 })
 
+actionNeededBtn.addEventListener('click', async () => {
+  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS')) {
+    if (confirm(`Mark "${currentJob.partName}" as needing user action?\n\nThis will notify the user that input is required.`)) {
+      await updateJobStatus(currentJob.id, 'ACTION_NEEDED')
+    }
+  }
+})
+
 cancelJobBtn.addEventListener('click', async () => {
-  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS' || currentJob.status === 'WAITING')) {
+  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS' || currentJob.status === 'WAITING' || currentJob.status === 'ACTION_NEEDED')) {
     if (confirm(`Are you sure you want to cancel the job "${currentJob.partName}"?`)) {
       await updateJobStatus(currentJob.id, 'CANCELLED')
     }
@@ -166,12 +179,10 @@ submitUsageBtn.addEventListener('click', async () => {
       throw new Error('API returned failure when starting job')
     }
 
-    // Check if job was set to WAITING
     if (json.data.status === 'WAITING') {
       alert(`Job set to WAITING status.\n\nUser has ${json.userUsage}g used.\nThis job would add ${json.estimatedUsage}g.\nTotal would be ${json.totalUsage}g, exceeding the ${json.usageLimit}g limit.`)
     }
 
-    // Reload jobs and close modals
     await loadPrintJobs()
     closeUsageModal()
     closeModal()
@@ -246,19 +257,28 @@ async function updateJobStatus(jobId: string, newStatus: string) {
 function updateActionButtons(status: string) {
   startJobBtn.disabled = false
   completeJobBtn.disabled = false
+  actionNeededBtn.disabled = false
   cancelJobBtn.disabled = false
 
   if (status === 'PENDING' || status === 'WAITING') {
     startJobBtn.disabled = false
     completeJobBtn.disabled = true
+    actionNeededBtn.disabled = false
     cancelJobBtn.disabled = false
   } else if (status === 'IN_PROGRESS') {
     startJobBtn.disabled = true
     completeJobBtn.disabled = false
+    actionNeededBtn.disabled = false
+    cancelJobBtn.disabled = false
+  } else if (status === 'ACTION_NEEDED') {
+    startJobBtn.disabled = false
+    completeJobBtn.disabled = true
+    actionNeededBtn.disabled = true
     cancelJobBtn.disabled = false
   } else {
     startJobBtn.disabled = true
     completeJobBtn.disabled = true
+    actionNeededBtn.disabled = true
     cancelJobBtn.disabled = true
   }
 }
@@ -270,11 +290,12 @@ function openModal(job: PrintJob) {
   modalJobStatus.innerHTML = `<span class="status ${job.status}">${job.status}</span>`
   modalJobMaterial.textContent = job.material
   modalJobColor.textContent = job.color
+  modalJobPickup.textContent = job.pickupLocation || 'TBD'
   modalJobQuantity.textContent = job.quantity.toString()
   modalJobCreated.textContent = new Date(job.createdAt).toLocaleString()
   modalUserName.textContent = job.user.name
   modalUserEmail.textContent = job.user.email
-  modalSpecialInstructions.textContent = job.specialInstructions || 'N/A'
+  modalSpecialInstructions.textContent = job.specialInstructions || 'None'
   
   updateActionButtons(job.status)
   
@@ -316,6 +337,7 @@ async function loadPrintJobs() {
 
 function renderAllTabs() {
   const pendingJobs = allJobs.filter(job => job.status === 'PENDING')
+  const actionNeededJobs = allJobs.filter(job => job.status === 'ACTION_NEEDED')
   const waitingJobs = allJobs.filter(job => job.status === 'WAITING')
   const inProgressJobs = allJobs.filter(job => job.status === 'IN_PROGRESS')
   const resolvedJobs = allJobs.filter(job => 
@@ -323,6 +345,7 @@ function renderAllTabs() {
   )
 
   renderTab(pendingJobs, pendingGrid, pendingEmpty)
+  renderTab(actionNeededJobs, actionNeededGrid, actionNeededEmpty)
   renderTab(waitingJobs, waitingGrid, waitingEmpty)
   renderTab(inProgressJobs, inProgressGrid, inProgressEmpty)
   renderTab(resolvedJobs, resolvedGrid, resolvedEmpty)
@@ -349,15 +372,13 @@ function createJobCard(job: PrintJob): HTMLElement {
   card.className = 'job-card'
   card.onclick = () => openModal(job)
   
-  const specialInstructionsText = job.specialInstructions || 'N/A'
-  
   card.innerHTML = `
     <div class="job-card-header">
       <div>
         <div class="job-card-title">${job.partName}</div>
         <div class="job-id">${job.id.substring(0, 12)}...</div>
       </div>
-      <span class="status ${job.status}">${job.status}</span>
+      <span class="status ${job.status}">${job.status.replace('_', ' ')}</span>
     </div>
     <div class="job-card-detail">
       <strong>User:</strong> ${job.user.name}
@@ -372,7 +393,7 @@ function createJobCard(job: PrintJob): HTMLElement {
       <strong>Quantity:</strong> ${job.quantity}
     </div>
     <div class="job-card-detail">
-      <strong>Instructions:</strong> ${specialInstructionsText}
+      <strong>Pickup:</strong> ${job.pickupLocation || 'TBD'}
     </div>
     <div class="job-card-detail">
       <strong>Created:</strong> ${new Date(job.createdAt).toLocaleDateString()}

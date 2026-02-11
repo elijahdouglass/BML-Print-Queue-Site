@@ -7,6 +7,7 @@ export const JobStatusEnum = z.enum([
   'PENDING',
   'WAITING',
   'IN_PROGRESS',
+  'ACTION_NEEDED',
   'COMPLETED',
   'CANCELLED',
   'FAILED'
@@ -28,6 +29,7 @@ export const createPrintJobSchema = z.object({
   material: z.string().min(1, 'Material is required').max(100),
   userSuppliedMaterial: z.boolean().default(false),
   specialInstructions: z.string().max(5000).optional(),
+  pickupLocation: z.string().max(255).optional(),
   stlUrl: z.string().url('Invalid STL URL'),
 });
 
@@ -38,6 +40,7 @@ export const updatePrintJobSchema = z.object({
   material: z.string().min(1).max(100).optional(),
   userSuppliedMaterial: z.boolean().optional(),
   specialInstructions: z.string().max(5000).optional(),
+  pickupLocation: z.string().max(255).optional(),
   stlUrl: z.string().url().optional(),
   status: JobStatusEnum.optional(),
 });

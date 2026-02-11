@@ -104,4 +104,4 @@ if not exist ".env" (
 
 echo Setup complete!
 echo Press any key to exit
-pause >nul
+pause >nul  
