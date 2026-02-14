@@ -38,7 +38,19 @@ type StartJobResponse = {
   usageLimit?: number 
 }
 
+type AuthResponse = {
+  success: boolean
+  token?: string
+  message?: string
+}
+
 const API_URL = 'http://localhost:3000/api/jobs'
+const AUTH_URL = 'http://localhost:3000/api/auth/monitor'
+const TOKEN_KEY = 'bml_monitor_token'
+
+// Password state
+let isUnlocked = false
+let authToken: string | null = null
 
 // UI Elements
 const loadingEl = document.getElementById('loading')!
@@ -88,9 +100,134 @@ const usageInputEl = document.getElementById('usage-input') as HTMLInputElement
 const submitUsageBtn = document.getElementById('submit-usage-btn')!
 const skipUsageBtn = document.getElementById('skip-usage-btn')!
 
+// Password modal elements
+const passwordModal = document.getElementById('password-modal')!
+const passwordInput = document.getElementById('password-input') as HTMLInputElement
+const passwordSubmitBtn = document.getElementById('password-submit-btn')!
+const passwordError = document.getElementById('password-error')!
+const lockIndicator = document.getElementById('lock-indicator')!
+
 let allJobs: PrintJob[] = []
 let currentJob: PrintJob | null = null
 let pendingStartJobId: string | null = null
+
+// Password functionality
+function showPasswordModal() {
+  passwordModal.classList.add('active')
+  passwordInput.value = ''
+  passwordError?.classList.remove('show')
+  passwordSubmitBtn.disabled = false
+  passwordSubmitBtn.textContent = 'Unlock'
+  setTimeout(() => passwordInput.focus(), 100)
+}
+
+function hidePasswordModal() {
+  passwordModal.classList.remove('active')
+}
+
+async function checkPassword() {
+  const enteredPassword = passwordInput.value
+  
+  if (!enteredPassword) {
+    passwordError!.textContent = 'Please enter a password'
+    passwordError?.classList.add('show')
+    return
+  }
+  
+  passwordSubmitBtn.disabled = true
+  passwordSubmitBtn.textContent = 'Authenticating...'
+  
+  try {
+    const res = await fetch(AUTH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: enteredPassword })
+    })
+    
+    const json: AuthResponse = await res.json()
+    
+    if (res.ok && json.success && json.token) {
+      // Authentication successful
+      authToken = json.token
+      localStorage.setItem(TOKEN_KEY, json.token)
+      isUnlocked = true
+      updateLockState()
+      hidePasswordModal()
+      renderAllTabs() // Re-render cards with clickable state
+    } else {
+      // Authentication failed
+      passwordError!.textContent = json.message || 'Incorrect password. Please try again.'
+      passwordError?.classList.add('show')
+      passwordInput.value = ''
+      passwordInput.focus()
+    }
+  } catch (err) {
+    console.error('Authentication error:', err)
+    passwordError!.textContent = 'Authentication failed. Please try again.'
+    passwordError?.classList.add('show')
+  } finally {
+    passwordSubmitBtn.disabled = false
+    passwordSubmitBtn.textContent = 'Unlock'
+  }
+}
+
+function updateLockState() {
+  if (isUnlocked) {
+    lockIndicator?.classList.add('unlocked')
+    lockIndicator?.setAttribute('title', 'Click to lock')
+  } else {
+    lockIndicator?.classList.remove('unlocked')
+    lockIndicator?.setAttribute('title', 'Click to unlock')
+  }
+}
+
+function logout() {
+  isUnlocked = false
+  authToken = null
+  localStorage.removeItem(TOKEN_KEY)
+  updateLockState()
+  renderAllTabs() // Re-render cards as locked
+  closeModal() // Close any open modals
+}
+
+// Check for existing token on load
+function checkExistingToken() {
+  const savedToken = localStorage.getItem(TOKEN_KEY)
+  if (savedToken) {
+    authToken = savedToken
+    isUnlocked = true
+    updateLockState()
+  }
+}
+
+// Lock indicator click
+lockIndicator?.addEventListener('click', () => {
+  if (!isUnlocked) {
+    showPasswordModal()
+  } else {
+    // Logout when clicking while unlocked
+    if (confirm('Lock the interface? You will need to enter the password again.')) {
+      logout()
+    }
+  }
+})
+
+// Password submit
+passwordSubmitBtn?.addEventListener('click', checkPassword)
+
+// Password input enter key
+passwordInput?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    checkPassword()
+  }
+})
+
+// Close password modal on escape
+passwordModal?.addEventListener('click', (e) => {
+  if (e.target === passwordModal) {
+    hidePasswordModal()
+  }
+})
 
 // Tab switching
 tabs.forEach(tab => {
@@ -165,9 +302,15 @@ submitUsageBtn.addEventListener('click', async () => {
   try {
     const res = await fetch(`${API_URL}/${pendingStartJobId}/start`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ usage: usageValue })
     })
+
+    if (res.status === 401 || res.status === 403) {
+      logout()
+      alert('Session expired. Please log in again.')
+      return
+    }
 
     if (!res.ok) {
       throw new Error(`Failed to start job: ${res.status}`)
@@ -229,13 +372,33 @@ function downloadSTL(job: PrintJob) {
   window.open(job.stlUrl || `http://localhost:3000/api/jobs/${job.id}/stl`, '_blank')
 }
 
+// Helper function to get headers with JWT
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json'
+  }
+  
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`
+  }
+  
+  return headers
+}
+
 async function updateJobStatus(jobId: string, newStatus: string) {
   try {
     const res = await fetch(`${API_URL}/${jobId}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ status: newStatus })
     })
+
+    if (res.status === 401 || res.status === 403) {
+      // Token expired or invalid
+      logout()
+      alert('Session expired. Please log in again.')
+      return
+    }
 
     if (!res.ok) {
       throw new Error(`Failed to update job status: ${res.status}`)
@@ -284,6 +447,12 @@ function updateActionButtons(status: string) {
 }
 
 function openModal(job: PrintJob) {
+  // Only allow opening modal if unlocked
+  if (!isUnlocked) {
+    showPasswordModal()
+    return
+  }
+
   currentJob = job
   modalJobName.textContent = job.partName
   modalJobId.textContent = job.id
@@ -312,7 +481,19 @@ async function loadPrintJobs() {
   try {
     showLoading()
 
-    const res = await fetch(API_URL)
+    const res = await fetch(API_URL, {
+      headers: getAuthHeaders()
+    })
+    
+    if (res.status === 401 || res.status === 403) {
+      // Token expired or invalid
+      if (isUnlocked) {
+        logout()
+        alert('Session expired. Please log in again.')
+      }
+      hideLoading()
+      return
+    }
     
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`)
@@ -370,7 +551,15 @@ function renderTab(jobs: PrintJob[], gridEl: HTMLElement, emptyEl: HTMLElement) 
 function createJobCard(job: PrintJob): HTMLElement {
   const card = document.createElement('div')
   card.className = 'job-card'
-  card.onclick = () => openModal(job)
+  
+  // Only make cards clickable if unlocked
+  if (isUnlocked) {
+    card.classList.add('clickable')
+    card.onclick = () => openModal(job)
+  } else {
+    card.classList.add('locked')
+    card.onclick = () => showPasswordModal()
+  }
   
   card.innerHTML = `
     <div class="job-card-header">
@@ -417,12 +606,16 @@ function showError(message: string) {
   errorEl.style.display = 'block'
 }
 
+// Initialize
+checkExistingToken()
 loadPrintJobs()
 setInterval(loadPrintJobs, 30000)
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (usageModal.classList.contains('active')) {
+    if (passwordModal.classList.contains('active')) {
+      hidePasswordModal()
+    } else if (usageModal.classList.contains('active')) {
       closeUsageModal()
     } else if (modal.classList.contains('active')) {
       closeModal()

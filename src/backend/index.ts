@@ -2,6 +2,8 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRoutes from './routes/api.routes';
+import authRoutes from './routes/auth.routes';
+
 
 // Load environment variables
 dotenv.config();
@@ -69,5 +71,8 @@ process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
   process.exit(0);
 });
+
+app.use('/api/auth', authRoutes);
+
 
 export default app;
