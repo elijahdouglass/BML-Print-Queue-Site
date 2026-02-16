@@ -160,7 +160,98 @@ export class PrintJobService {
     return printJobs;
   }
 
-  /**
+// services/printJob.service.ts - Add this method to your existing PrintJobService class
+
+/**
+ * Delete all completed and cancelled jobs
+ * Used for weekly reset
+ */
+async deleteCompletedAndCancelledJobs(): Promise<{ count: number }> {
+  const result = await prisma.printJob.deleteMany({
+    where: {
+      OR: [
+        { status: 'COMPLETED' },
+        { status: 'CANCELLED' },
+      ],
+    },
+  });
+  return { count: result.count };
+}
+
+/**
+ * Reset all WAITING jobs to PENDING status
+ * Used for weekly reset - gives jobs a fresh start when user usage resets
+ */
+async resetWaitingJobsToPending(): Promise<{ count: number }> {
+  const result = await prisma.printJob.updateMany({
+    where: {
+      status: 'WAITING',
+    },
+    data: {
+      status: 'PENDING',
+    },
+  });
+  return { count: result.count };
+}
+
+/**
+ * Get list of unique user IDs who have WAITING jobs
+ * Used for weekly reset - these users need to be preserved
+ * @deprecated Use getUserIdsWithActiveJobs instead
+ */
+async getUserIdsWithWaitingJobs(): Promise<string[]> {
+  const jobs = await prisma.printJob.findMany({
+    where: {
+      status: 'WAITING',
+    },
+    select: {
+      userId: true,
+    },
+    distinct: ['userId'],
+  });
+  
+  return jobs.map(job => job.userId);
+}
+
+/**
+ * Get list of unique user IDs who have active jobs
+ * Active = WAITING, PENDING, IN_PROGRESS, ACTION_NEEDED
+ * Used for weekly reset - these users need to be preserved
+ */
+async getUserIdsWithActiveJobs(): Promise<string[]> {
+  const jobs = await prisma.printJob.findMany({
+    where: {
+      status: {
+        in: ['WAITING', 'PENDING', 'IN_PROGRESS', 'ACTION_NEEDED'],
+      },
+    },
+    select: {
+      userId: true,
+    },
+    distinct: ['userId'],
+  });
+  
+  return jobs.map(job => job.userId);
+}
+
+/**
+ * Get all file URLs from active jobs (not COMPLETED or CANCELLED)
+ * Used for weekly reset - to preserve STL files still in use
+ */
+async getActiveJobFileUrls(): Promise<string[]> {
+  const jobs = await prisma.printJob.findMany({
+    where: {
+      status: {
+        notIn: ['COMPLETED', 'CANCELLED'],
+      },
+    },
+    select: {
+      stlUrl: true,
+    },
+  });
+  
+  return jobs.map(job => job.stlUrl).filter(Boolean);
+}  /**
    * Get job statistics
    */
   async getJobStatistics() {

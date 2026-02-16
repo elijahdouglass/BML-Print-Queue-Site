@@ -35,6 +35,49 @@ class UserService {
 
     return users;
   }
+// services/user.service.ts - Add this method to your existing UserService class
+
+/**
+ * Delete all users EXCEPT those in the provided list
+ * Used for weekly reset - preserves users who have active jobs
+ */
+async deleteUsersExcept(userIdsToKeep: string[]): Promise<{ count: number }> {
+  const result = await prisma.user.deleteMany({
+    where: {
+      id: {
+        notIn: userIdsToKeep,
+      },
+    },
+  });
+  return { count: result.count };
+}
+
+/**
+ * Reset usage to 0 for specific users
+ * Used for weekly reset - resets usage for preserved users with active jobs
+ */
+async resetUsageForUsers(userIds: string[]): Promise<{ count: number }> {
+  const result = await prisma.user.updateMany({
+    where: {
+      id: {
+        in: userIds,
+      },
+    },
+    data: {
+      usage: 0,
+    },
+  });
+  return { count: result.count };
+}
+
+/**
+ * Delete all users
+ * Used for complete reset (if needed)
+ */
+async deleteAllUsers(): Promise<{ count: number }> {
+  const result = await prisma.user.deleteMany({});
+  return { count: result.count };
+}
 
   /**
    * Update user's filament usage (set to exact value)
@@ -125,5 +168,6 @@ class UserService {
     };
   }
 }
+
 
 export default new UserService();
