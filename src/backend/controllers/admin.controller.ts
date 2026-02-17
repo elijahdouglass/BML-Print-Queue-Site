@@ -13,7 +13,7 @@ export class AdminController {
    */
   async triggerWeeklyReset(req: Request, res: Response) {
     try {
-      console.log('🔄 Manual weekly reset triggered by admin');
+      console.log('Manual weekly reset triggered by admin');
       
       const result = await schedulerService.performWeeklyReset();
 

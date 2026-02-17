@@ -1,5 +1,7 @@
 // services/scheduler.service.ts
 
+// services/scheduler.service.ts
+
 import cron from 'node-cron';
 import userService from './user.service';
 import printJobService from './printJob.service';
@@ -11,20 +13,21 @@ class SchedulerService {
 
   /**
    * Initialize the weekly reset scheduler
-   * Runs every Monday at 12:00 AM (midnight)
+   * Day and timezone are configured via RESET_DAY and RESET_TIMEZONE env variables
    */
   initialize() {
-    // Schedule: '0 0 * * 1' = Every Monday at 00:00
-    // Format: second minute hour day-of-month month day-of-week
-    this.weeklyResetJob = cron.schedule('0 0 * * 1', async () => {
+    const day = process.env.RESET_DAY || '1';       // 0=Sunday, 1=Monday, ..., 6=Saturday
+    const timezone = process.env.RESET_TIMEZONE || 'America/Indiana/Indianapolis';
+
+    this.weeklyResetJob = cron.schedule(`0 0 * * ${day}`, async () => {
       console.log('Starting weekly reset...');
       await this.performWeeklyReset();
     }, {
       scheduled: true,
-      timezone: 'America/Indiana' // Adjust to your timezone
+      timezone,
     });
 
-    console.log('Weekly reset scheduler initialized (runs every Monday at 12:00 AM)');
+    console.log(`Weekly reset scheduler initialized (runs every day ${day} at 12:00 AM, timezone: ${timezone})`);
   }
 
   /**
