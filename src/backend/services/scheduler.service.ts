@@ -17,14 +17,14 @@ class SchedulerService {
     // Schedule: '0 0 * * 1' = Every Monday at 00:00
     // Format: second minute hour day-of-month month day-of-week
     this.weeklyResetJob = cron.schedule('0 0 * * 1', async () => {
-      console.log('🔄 Starting weekly reset...');
+      console.log('Starting weekly reset...');
       await this.performWeeklyReset();
     }, {
       scheduled: true,
-      timezone: 'America/New_York' // Adjust to your timezone
+      timezone: 'America/Indiana' // Adjust to your timezone
     });
 
-    console.log('✅ Weekly reset scheduler initialized (runs every Monday at 12:00 AM)');
+    console.log('Weekly reset scheduler initialized (runs every Monday at 12:00 AM)');
   }
 
   /**
@@ -73,7 +73,7 @@ class SchedulerService {
       }
 
       // 2. Reset WAITING jobs to PENDING
-      console.log('📋 Resetting WAITING jobs to PENDING...');
+      console.log('Resetting WAITING jobs to PENDING...');
       try {
         const resetResult = await printJobService.resetWaitingJobsToPending();
         resetWaitingJobs = resetResult.count;
@@ -122,7 +122,7 @@ class SchedulerService {
       }
 
       // 6. Clear uploads directory
-      console.log('📋 Clearing uploads directory...');
+      console.log('Clearing uploads directory...');
       try {
         await this.clearUploadsDirectory();
         clearedUploads = true;

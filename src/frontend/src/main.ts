@@ -294,6 +294,11 @@ submitUsageBtn.addEventListener('click', async () => {
     return
   }
   
+  if (usageValue > 300) {
+    alert('Job rejected: Filament usage cannot exceed 300g.\n\nThis job requires ' + usageValue + 'g, which is over the 300g limit.')
+    return
+  }
+
   if (!pendingStartJobId || !currentJob) return
   
   submitUsageBtn.disabled = true

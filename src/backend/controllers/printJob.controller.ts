@@ -280,6 +280,27 @@ export class PrintJobController {
         const waitingJob = await printJobService.updatePrintJobStatus(id, { 
           status: 'WAITING' 
         });
+        
+          emailService.sendJobWaitingEmail({
+          userEmail: currentJob.user.email,
+          userName: currentJob.user.name,
+          partName: currentJob.partName,
+          jobId: currentJob.id,
+          currentUsage,
+          estimatedJobUsage: usage,
+          totalUsage: newUsage,
+          usageLimit: USAGE_LIMIT,
+          material: currentJob.material,
+          color: currentJob.color,
+        }).then((sent) => {
+        if (sent) {
+            console.log(`Waiting email sent to ${currentJob.user.email} for job ${currentJob.id}`);
+          } else {
+            console.error(`Failed to send waiting email for job ${currentJob.id}`);
+          }
+        }).catch((err) => {
+          console.error(`Error sending waiting email:`, err);
+        });
 
         return res.status(200).json({
           success: true,

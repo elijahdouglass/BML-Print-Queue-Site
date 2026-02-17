@@ -5,7 +5,7 @@ VALUES
 (
   'user_1',
   'Alice Johnson',
-  'elijahdouglass00@gmail.com',
+  'dougl111@purdue.edu',
   'alice#1234',
   NOW(),
   NOW(),
