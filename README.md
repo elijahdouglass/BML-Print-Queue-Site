@@ -1,1 +1,1 @@
-on claude i did not gpt this
+This is a website meant to replace the current queue system used by BoilerMaker labs.
