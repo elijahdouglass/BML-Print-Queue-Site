@@ -258,7 +258,7 @@ downloadStlBtn.addEventListener('click', () => {
 })
 
 startJobBtn.addEventListener('click', async () => {
-  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'WAITING')) {
+  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'WAITING' || currentJob.status === 'ACTION_NEEDED')) {
     pendingStartJobId = currentJob.id
     openUsageModal(currentJob)
   }
