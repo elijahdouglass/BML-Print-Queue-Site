@@ -36,8 +36,8 @@ const storage = multer.diskStorage({
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const ext = path.extname(file.originalname).toLowerCase();
   
-  if (ext !== '.stl') {
-    return cb(new Error('Only STL files are allowed'));
+  if (ext !== '.stl' && ext !== '.3mf') {
+    return cb(new Error('Only STL and 3MF files are allowed'));
   }
   
   cb(null, true);

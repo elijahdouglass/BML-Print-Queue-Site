@@ -98,6 +98,15 @@
         transition: all 0.3s ease;
       }
 
+      .form-group select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b0b0b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+        cursor: pointer;
+      }
+
       .form-group input:focus,
       .form-group select:focus,
       .form-group textarea:focus {
@@ -412,12 +421,11 @@
           <!-- Pickup Location -->
           <div class="form-group">
             <label for="pickup-location">Pickup Location <span class="required">*</span></label>
-            <input 
-              type="text" 
-              id="pickup-location" 
-              placeholder="e.g. KNOY 155 or Mailroom" 
-              required
-            />
+            <select id="pickup-location" required>
+              <option value="" disabled selected>Select a pickup location</option>
+              <option value="KNOY 155">KNOY 155</option>
+              <option value="KNOY Mailroom">KNOY Mailroom</option>
+            </select>
             <span class="hint">Location where you'll pick up your completed print</span>
           </div>
 
@@ -442,14 +450,14 @@
             <span class="hint">Your Discord username</span>
           </div>
 
-          <!-- Upload STL File -->
+          <!-- Upload STL/3MF File -->
           <div class="form-group">
-            <label>Upload STL File <span class="required">*</span></label>
+            <label>Upload File <span class="required">*</span></label>
             <div class="file-upload">
               <input 
                 type="file" 
                 id="stl-file" 
-                accept=".stl"
+                accept=".stl,.3mf"
                 required
               />
               <label for="stl-file" class="file-upload-label">
@@ -458,11 +466,11 @@
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                Click to upload STL file
+                Click to upload STL or 3MF file
               </label>
               <div id="file-name" class="file-name"></div>
             </div>
-            <span class="hint">Only .stl files are accepted</span>
+            <span class="hint">Maximum file size: 50 MB, accepted formats are .stl and .3mf</span>
           </div>
 
           <!-- Special Instructions -->

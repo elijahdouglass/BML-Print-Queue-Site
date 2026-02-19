@@ -16,6 +16,8 @@ type FormData = {
 
 const API_URL = 'http://localhost:3000/api/jobs';
 const UPLOAD_URL = 'http://localhost:3000/api/uploads';
+const MAX_FILE_SIZE_MB = 50;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Form elements
 const form = document.getElementById('print-job-form') as HTMLFormElement;
@@ -27,7 +29,7 @@ const materialInput = document.getElementById('material') as HTMLInputElement;
 const userSuppliedRadios = document.getElementsByName('user-supplied') as NodeListOf<HTMLInputElement>;
 const quantityInput = document.getElementById('quantity') as HTMLInputElement;
 const colorInput = document.getElementById('color') as HTMLInputElement;
-const pickupLocationInput = document.getElementById('pickup-location') as HTMLInputElement;
+const pickupLocationSelect = document.getElementById('pickup-location') as HTMLSelectElement;
 const discordInput = document.getElementById('discord-id') as HTMLInputElement;
 const stlFileInput = document.getElementById('stl-file') as HTMLInputElement;
 const specialInstructionsTextarea = document.getElementById('special-instructions') as HTMLTextAreaElement;
@@ -41,6 +43,13 @@ stlFileInput.addEventListener('change', (e) => {
   const file = (e.target as HTMLInputElement).files?.[0];
   
   if (file) {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      showError(`File is too large. Maximum file size is ${MAX_FILE_SIZE_MB} MB.`);
+      stlFileInput.value = '';
+      fileNameDisplay.textContent = '';
+      fileNameDisplay.classList.remove('active');
+      return;
+    }
     fileNameDisplay.textContent = `📄 ${file.name} (${formatFileSize(file.size)})`;
     fileNameDisplay.classList.add('active');
   } else {
@@ -83,13 +92,20 @@ form.addEventListener('submit', async (e) => {
   // Get file
   const file = stlFileInput.files?.[0];
   if (!file) {
-    showError('Please upload an STL file');
+    showError('Please upload an STL or 3MF file');
     return;
   }
   
   // Validate file type
-  if (!file.name.toLowerCase().endsWith('.stl')) {
-    showError('Only .stl files are accepted');
+  const fileName = file.name.toLowerCase();
+  if (!fileName.endsWith('.stl') && !fileName.endsWith('.3mf')) {
+    showError('Only .stl and .3mf files are accepted');
+    return;
+  }
+
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    showError(`File is too large. Maximum file size is ${MAX_FILE_SIZE_MB} MB.`);
     return;
   }
   
@@ -124,7 +140,7 @@ form.addEventListener('submit', async (e) => {
       userSuppliedMaterial: userSuppliedMaterial,
       quantity: parseInt(quantityInput.value, 10),
       color: colorInput.value.trim(),
-      pickupLocation: pickupLocationInput.value.trim(),
+      pickupLocation: pickupLocationSelect.value,
       stlUrl: stlUrl,
       specialInstructions: specialInstructionsTextarea.value.trim() || undefined,
     };

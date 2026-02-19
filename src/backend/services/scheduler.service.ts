@@ -64,7 +64,7 @@ class SchedulerService {
 
     try {
       // 1. Get list of users with active jobs (WAITING, PENDING, IN_PROGRESS, ACTION_NEEDED)
-      console.log('📋 Identifying users with active jobs...');
+      console.log('Identifying users with active jobs...');
       let userIdsWithActiveJobs: string[] = [];
       try {
         userIdsWithActiveJobs = await printJobService.getUserIdsWithActiveJobs();

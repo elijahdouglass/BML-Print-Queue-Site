@@ -272,7 +272,7 @@ completeJobBtn.addEventListener('click', async () => {
 
 actionNeededBtn.addEventListener('click', async () => {
   if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS')) {
-    if (confirm(`Mark "${currentJob.partName}" as needing user action?\n\nThis will notify the user that input is required.`)) {
+    if (confirm(`Mark "${currentJob.partName}" as needing user action?\n\nThis will indicate to the user that input is required.`)) {
       await updateJobStatus(currentJob.id, 'ACTION_NEEDED')
     }
   }
