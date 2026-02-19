@@ -20,6 +20,7 @@ type PrintJob = {
   specialInstructions?: string
   user: User
   stlUrl?: string
+  userSuppliedMaterial?: boolean
 }
 
 type ApiResponse = {
@@ -470,7 +471,8 @@ function openModal(job: PrintJob) {
   modalUserName.textContent = job.user.name
   modalUserEmail.textContent = job.user.email
   modalSpecialInstructions.textContent = job.specialInstructions || 'None'
-  
+  modalSpecialInstructions.textContent = job.specialInstructions || 'None'
+  document.getElementById('modal-job-supplied')!.textContent = job.userSuppliedMaterial ? 'User supplied' : 'Lab stock'
   updateActionButtons(job.status)
   
   modal.classList.add('active')
