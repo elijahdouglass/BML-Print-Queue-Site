@@ -111,20 +111,44 @@ export class PrintJobService {
   /**
    * Update print job status only
    */
-  async updatePrintJobStatus(id: string, data: UpdatePrintJobStatusInput) {
-    const printJob = await prisma.printJob.update({
-      where: { id },
-      data: {
-        status: data.status,
-        ...(data.status === 'COMPLETED' ? { completedAt: new Date() } : {}),
-      },
-      include: {
-        user: true,
-      },
-    });
+  async updatePrintJobStatus(id: string, data: UpdatePrintJobStatusInput & { estimatedUsage?: number }) {
+  const currentJob = await prisma.printJob.findUnique({
+    where: { id },
+    include: { user: true },
+  });
+
+  if (!currentJob) throw new Error('Job not found');
+
+  // Refund usage when cancelling an in-progress job
+  if (data.status === 'CANCELLED' && currentJob.status === 'IN_PROGRESS' && currentJob.estimatedUsage) {
+    const refundAmount = Math.min(currentJob.estimatedUsage, currentJob.user.usage);
+
+    const [printJob] = await prisma.$transaction([
+      prisma.printJob.update({
+        where: { id },
+        data: { status: 'CANCELLED' },
+        include: { user: true },
+      }),
+      prisma.user.update({
+        where: { id: currentJob.userId },
+        data: { usage: { decrement: refundAmount } },
+      }),
+    ]);
 
     return printJob;
   }
+
+  // Normal path
+  return prisma.printJob.update({
+    where: { id },
+    data: {
+      status: data.status,
+      ...(data.status === 'COMPLETED' ? { completedAt: new Date() } : {}),
+      ...(data.estimatedUsage !== undefined ? { estimatedUsage: data.estimatedUsage } : {}),
+    },
+    include: { user: true },
+  });
+}
 
   /**
    * Delete a single print job

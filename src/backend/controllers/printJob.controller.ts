@@ -316,9 +316,10 @@ export class PrintJobController {
       // Add usage to user
       await userService.addUserUsage(currentJob.userId, usage);
 
-      // Set job to IN_PROGRESS
+      // Set job to IN_PROGRESS, saving the estimated usage for potential refund later
       const startedJob = await printJobService.updatePrintJobStatus(id, { 
-        status: 'IN_PROGRESS' 
+        status: 'IN_PROGRESS',
+        estimatedUsage: usage  // <-- add this
       });
 
       res.status(200).json({

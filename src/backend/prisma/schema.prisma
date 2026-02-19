@@ -37,6 +37,7 @@ model PrintJob {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   completedAt          DateTime?
+  estimatedUsage       Float     @default(0)
 
   @@index([userId])
   @@index([status])
