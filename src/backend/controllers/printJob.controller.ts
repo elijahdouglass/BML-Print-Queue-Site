@@ -254,10 +254,10 @@ export class PrintJobController {
         });
       }
 
-      if (currentJob.status !== 'PENDING' && currentJob.status !== 'WAITING') {
+      if (currentJob.status !== 'PENDING' && currentJob.status !== 'WAITING' && currentJob.status !== 'ACTION_NEEDED') {
         return res.status(400).json({
           success: false,
-          error: 'Job must be PENDING or WAITING to start',
+          error: 'Job must be PENDING, WAITING, or ACTION_NEEDED to start',
         });
       }
 
