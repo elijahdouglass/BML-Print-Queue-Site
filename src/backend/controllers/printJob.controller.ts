@@ -319,7 +319,7 @@ export class PrintJobController {
       // Set job to IN_PROGRESS, saving the estimated usage for potential refund later
       const startedJob = await printJobService.updatePrintJobStatus(id, { 
         status: 'IN_PROGRESS',
-        estimatedUsage: usage  // <-- add this
+        estimatedUsage: usage
       });
 
       res.status(200).json({

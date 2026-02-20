@@ -120,7 +120,7 @@ export class PrintJobService {
   if (!currentJob) throw new Error('Job not found');
 
   // Refund usage when cancelling an in-progress job
-  if (data.status === 'CANCELLED' && currentJob.status === 'IN_PROGRESS' && currentJob.estimatedUsage) {
+  if (data.status === 'CANCELLED' && (currentJob.status === 'IN_PROGRESS' || currentJob.status === 'ACTION_NEEDED') && currentJob.estimatedUsage) {
     const refundAmount = Math.min(currentJob.estimatedUsage, currentJob.user.usage);
 
     const [printJob] = await prisma.$transaction([
