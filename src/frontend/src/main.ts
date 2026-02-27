@@ -376,7 +376,14 @@ function closeUsageModal() {
 }
 
 function downloadSTL(job: PrintJob) {
-  window.open(job.stlUrl || `${BASE_URL}/api/jobs/${job.id}/stl`, '_blank')
+  const url = job.stlUrl || `${BASE_URL}/api/jobs/${job.id}/stl`;
+  const ext = url.split('.').pop() || 'stl';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${job.partName}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // Helper function to get headers with JWT
