@@ -83,7 +83,7 @@ export class PrintJobController {
    */
   async getPrintJobById(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const printJob = await printJobService.getPrintJobById(id);
 
       if (!printJob) {
@@ -112,7 +112,7 @@ export class PrintJobController {
    */
   async updatePrintJob(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const validatedData = updatePrintJobSchema.parse(req.body);
 
       const printJob = await printJobService.updatePrintJob(id, validatedData);
@@ -145,7 +145,7 @@ export class PrintJobController {
    */
   async updatePrintJobStatus(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const validatedData = updatePrintJobStatusSchema.parse(req.body);
 
       // Get the current job to check previous status and user info
@@ -166,7 +166,6 @@ export class PrintJobController {
 
       // Send email notifications based on status change
       if (newStatus === 'COMPLETED' && previousStatus !== 'COMPLETED') {
-        // Send completion email (non-blocking)
         emailService.sendJobCompletionEmail({
           userEmail: currentJob.user.email,
           userName: currentJob.user.name,
@@ -186,7 +185,6 @@ export class PrintJobController {
           console.error(`Error sending completion email:`, err);
         });
       } else if (newStatus === 'CANCELLED' && previousStatus !== 'CANCELLED') {
-        // Send cancellation email (non-blocking)
         emailService.sendJobCancelledEmail({
           userEmail: currentJob.user.email,
           userName: currentJob.user.name,
@@ -235,7 +233,7 @@ export class PrintJobController {
    */
   async startJobWithUsage(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { usage } = req.body;
 
       if (typeof usage !== 'number' || usage < 0) {
@@ -281,7 +279,7 @@ export class PrintJobController {
           status: 'WAITING' 
         });
         
-          emailService.sendJobWaitingEmail({
+        emailService.sendJobWaitingEmail({
           userEmail: currentJob.user.email,
           userName: currentJob.user.name,
           partName: currentJob.partName,
@@ -293,7 +291,7 @@ export class PrintJobController {
           material: currentJob.material,
           color: currentJob.color,
         }).then((sent) => {
-        if (sent) {
+          if (sent) {
             console.log(`Waiting email sent to ${currentJob.user.email} for job ${currentJob.id}`);
           } else {
             console.error(`Failed to send waiting email for job ${currentJob.id}`);
@@ -342,7 +340,7 @@ export class PrintJobController {
    */
   async deletePrintJob(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await printJobService.deletePrintJob(id);
 
       res.status(200).json({
@@ -395,7 +393,7 @@ export class PrintJobController {
    */
   async getPrintJobsByUser(req: Request, res: Response) {
     try {
-      const { userId } = req.params;
+      const userId = req.params.userId as string;
       const printJobs = await printJobService.getPrintJobsByUser(userId);
 
       res.status(200).json({

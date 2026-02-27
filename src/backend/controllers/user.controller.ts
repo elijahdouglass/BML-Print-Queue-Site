@@ -12,7 +12,7 @@ export class UserController {
    */
   async getUserById(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const user = await userService.getUserById(id);
 
       if (!user) {
@@ -63,7 +63,7 @@ export class UserController {
    */
   async updateUserUsage(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const validatedData = updateUserUsageSchema.parse(req.body);
 
       const user = await userService.updateUserUsage(id, validatedData.usage);
@@ -96,7 +96,7 @@ export class UserController {
    */
   async addUserUsage(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const validatedData = updateUserUsageSchema.parse(req.body);
 
       const user = await userService.addUserUsage(id, validatedData.usage);
@@ -129,7 +129,7 @@ export class UserController {
    */
   async getUserStats(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const stats = await userService.getUserStats(id);
 
       if (!stats) {
