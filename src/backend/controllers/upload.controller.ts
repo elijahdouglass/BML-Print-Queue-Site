@@ -90,28 +90,28 @@ export class UploadController {
    * GET /uploads/:filename
    */
   async getFile(req: Request, res: Response) {
-    try {
-      const filename = req.params.filename as string;
-      const filePath = path.join(__dirname, '../../uploads', filename);
+  try {
+    const filename = req.params.filename as string;
+    const filePath = path.join(__dirname, '../../uploads', filename);
 
-      // Check if file exists
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({
-          success: false,
-          error: 'File not found',
-        });
-      }
-
-      // Send file
-      res.sendFile(filePath);
-    } catch (error) {
-      console.error('Error retrieving file:', error);
-      res.status(500).json({
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
         success: false,
-        error: 'Failed to retrieve file',
+        error: 'File not found',
       });
     }
+
+    // Force download instead of opening in browser
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error('Error retrieving file:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve file',
+    });
   }
+}
 }
 
 export default new UploadController();
