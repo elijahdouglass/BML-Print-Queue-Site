@@ -1,9 +1,9 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import apiRoutes from './routes/api.routes';
 import authRoutes from './routes/auth.routes';
-
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +37,11 @@ app.get('/health', (req: Request, res: Response) => {
 // API routes
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
+
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.get('*', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 
 // 404 handler
 app.use((req: Request, res: Response) => {
