@@ -45,8 +45,9 @@ type AuthResponse = {
   message?: string
 }
 
-const API_URL = 'http://localhost:3000/api/jobs'
-const AUTH_URL = 'http://localhost:3000/api/auth/monitor'
+const BASE_URL = import.meta.env.VITE_API_URL;
+const API_URL = `${BASE_URL}/api/jobs`
+const AUTH_URL = `${BASE_URL}/api/auth/monitor`
 const TOKEN_KEY = 'bml_monitor_token'
 
 // Password state
@@ -375,7 +376,7 @@ function closeUsageModal() {
 }
 
 function downloadSTL(job: PrintJob) {
-  window.open(job.stlUrl || `http://localhost:3000/api/jobs/${job.id}/stl`, '_blank')
+  window.open(job.stlUrl || `${BASE_URL}/api/jobs/${job.id}/stl`, '_blank')
 }
 
 // Helper function to get headers with JWT

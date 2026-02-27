@@ -36,6 +36,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API routes
 app.use('/api', apiRoutes);
+app.use('/api/auth', authRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -71,8 +72,5 @@ process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
   process.exit(0);
 });
-
-app.use('/api/auth', authRoutes);
-
 
 export default app;

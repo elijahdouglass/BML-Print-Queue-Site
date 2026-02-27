@@ -14,8 +14,9 @@ type FormData = {
   specialInstructions?: string;
 };
 
-const API_URL = 'http://localhost:3000/api/jobs';
-const UPLOAD_URL = 'http://localhost:3000/api/uploads';
+const BASE_URL = import.meta.env.VITE_API_URL;
+const API_URL = `${BASE_URL}/api/jobs`;
+const UPLOAD_URL = `${BASE_URL}/api/uploads`;
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
