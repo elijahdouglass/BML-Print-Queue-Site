@@ -375,15 +375,25 @@ function closeUsageModal() {
   pendingStartJobId = null
 }
 
-function downloadSTL(job: PrintJob) {
+async function downloadSTL(job: PrintJob) {
   const url = job.stlUrl || `${BASE_URL}/api/jobs/${job.id}/stl`;
   const ext = url.split('.').pop() || 'stl';
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${job.partName}.${ext}`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = `${job.partName}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error('Download failed:', error);
+  }
 }
 
 // Helper function to get headers with JWT
