@@ -1,8 +1,6 @@
 // services/scheduler.service.ts
 
-// services/scheduler.service.ts
-
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 import userService from './user.service';
 import printJobService from './printJob.service';
 import fs from 'fs';
@@ -23,7 +21,6 @@ class SchedulerService {
       console.log('Starting weekly reset...');
       await this.performWeeklyReset();
     }, {
-      scheduled: true,
       timezone,
     });
 
@@ -32,17 +29,6 @@ class SchedulerService {
 
   /**
    * Perform the weekly reset operations
-   * - Get list of users with active jobs (WAITING, PENDING, IN_PROGRESS, ACTION_NEEDED)
-   * - Reset WAITING jobs to PENDING
-   * - Reset usage to 0 for all preserved users
-   * - Delete only users who have NO active jobs
-   * - Delete COMPLETED and CANCELLED jobs only
-   * - Clear STL files from COMPLETED/CANCELLED jobs only
-   * 
-   * PRESERVED:
-   * - Users with active jobs (WAITING, PENDING, IN_PROGRESS, ACTION_NEEDED)
-   * - All jobs with status: PENDING, WAITING (→PENDING), IN_PROGRESS, FAILED, ACTION_NEEDED
-   * - STL files from preserved jobs
    */
   async performWeeklyReset(): Promise<{
     success: boolean;
@@ -168,25 +154,20 @@ class SchedulerService {
 
   /**
    * Clear STL files from COMPLETED and CANCELLED jobs only
-   * All other job files (PENDING, WAITING, IN_PROGRESS, FAILED) are preserved
    */
   private async clearUploadsDirectory(): Promise<void> {
     const uploadsDir = path.join(__dirname, '../../uploads');
 
-    // Check if directory exists
     if (!fs.existsSync(uploadsDir)) {
       console.log('Uploads directory does not exist, skipping...');
       return;
     }
 
-    // Get all file URLs from jobs that are NOT completed or cancelled
     const activeJobs = await printJobService.getActiveJobFileUrls();
     
-    // Extract just the filenames from the URLs
     const activeFilenames = new Set(
       activeJobs
         .map(url => {
-          // Extract filename from URL like: http://localhost:3000/api/uploads/filename.stl
           const parts = url.split('/');
           return parts[parts.length - 1];
         })
@@ -195,23 +176,19 @@ class SchedulerService {
 
     console.log(`Found ${activeFilenames.size} files in use by active jobs (PENDING, WAITING, IN_PROGRESS, FAILED)`);
 
-    // Read all files in directory
     const files = fs.readdirSync(uploadsDir);
     let deletedCount = 0;
     let preservedCount = 0;
 
-    // Delete each file that's NOT in use by active jobs
     for (const file of files) {
       const filePath = path.join(uploadsDir, file);
       const stat = fs.statSync(filePath);
 
       if (stat.isFile()) {
         if (activeFilenames.has(file)) {
-          // Keep this file - it's being used by an active job
           preservedCount++;
           console.log(`  Preserving: ${file} (in use by active job)`);
         } else {
-          // Delete this file - only used by COMPLETED/CANCELLED jobs or orphaned
           fs.unlinkSync(filePath);
           deletedCount++;
         }
