@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    container_name: bml-print-queue
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - src/backend/.env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://root:skibidirizzler37@172.17.0.1:3306/bml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /home/bml/uploads:/app/uploads

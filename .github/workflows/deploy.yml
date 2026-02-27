@@ -17,5 +17,4 @@ jobs:
       - name: Rebuild and restart
         run: |
           cd ~/BML-Print-Queue-Site
-          docker compose down
           docker compose up --build -d
