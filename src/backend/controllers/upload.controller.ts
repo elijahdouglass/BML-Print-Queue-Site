@@ -67,11 +67,7 @@ export class UploadController {
       }
 
       // Generate file URL
-      const forwardedProto = (req.headers['x-forwarded-proto'] as string)?.split(',')[0].trim();
-      const isProduction = process.env.NODE_ENV === 'production';
-      const protocol = isProduction ? 'https' : (forwardedProto || req.protocol);
-
-      const fileUrl = `${protocol}://${req.get('host')}/api/uploads/${req.file.filename}`;
+      const fileUrl = `https://${req.get('host')}/api/uploads/${req.file.filename}`;
 
       res.status(200).json({
         success: true,
