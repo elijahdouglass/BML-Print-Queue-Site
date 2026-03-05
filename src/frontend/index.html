@@ -28,6 +28,8 @@
         background: var(--purdue-black);
         min-height: 100vh;
         color: var(--text-light);
+        /* Prevent horizontal overflow on mobile */
+        overflow-x: hidden;
       }
 
       #app {
@@ -37,46 +39,55 @@
         min-height: 100vh;
       }
 
+      /* ── Header ── */
       .header {
         background: var(--purdue-black);
         border-bottom: 3px solid var(--purdue-gold);
-        padding: 30px;
+        padding: 20px 16px;
         text-align: center;
       }
 
       .header h1 {
-        font-size: 2.5rem;
-        margin-bottom: 10px;
+        font-size: clamp(1.5rem, 6vw, 2.5rem);
+        margin-bottom: 6px;
         color: var(--purdue-gold);
         font-weight: 700;
       }
 
       .header p {
-        font-size: 1.1rem;
+        font-size: clamp(0.85rem, 3vw, 1.1rem);
         color: var(--text-gray);
       }
 
+      /* ── New Request Bar ── */
       .new-request-container {
-        padding: 20px 30px;
+        padding: 14px 16px;
         background: var(--purdue-black);
         border-bottom: 1px solid var(--border-color);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
       .new-request-btn {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        padding: 15px 30px;
+        gap: 8px;
+        padding: 12px 20px;
         background: var(--purdue-gold);
         color: var(--purdue-black);
         border: none;
         border-radius: 8px;
-        font-size: 1.1rem;
+        font-size: clamp(0.9rem, 3.5vw, 1.1rem);
         font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
         text-decoration: none;
         box-shadow: 0 2px 8px rgba(207, 185, 145, 0.3);
+        /* Allow buttons to shrink on very small screens */
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 140px;
       }
 
       .new-request-btn:hover {
@@ -90,29 +101,39 @@
       }
 
       .new-request-btn svg {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         fill: var(--purdue-black);
+        flex-shrink: 0;
       }
 
+      /* ── Tabs ── */
       .tabs {
         display: flex;
         background: var(--purdue-medium-gray);
         border-bottom: 2px solid var(--border-color);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+      }
+
+      .tabs::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
       }
 
       .tab {
-        flex: 1;
-        padding: 20px;
+        flex: 0 0 auto; /* don't shrink — let tabs scroll */
+        padding: 14px 18px;
         text-align: center;
         cursor: pointer;
         background: transparent;
         border: none;
         color: var(--text-gray);
-        font-size: 1.1rem;
+        font-size: clamp(0.82rem, 3vw, 1.1rem);
         font-weight: 600;
         transition: all 0.3s ease;
         border-bottom: 3px solid transparent;
+        white-space: nowrap;
       }
 
       .tab:hover {
@@ -126,49 +147,81 @@
         background: var(--purdue-dark-gray);
       }
 
+      /* ── Content ── */
       .content {
-        padding: 30px;
+        padding: 16px;
+      }
+
+      @media (min-width: 600px) {
+        .content {
+          padding: 30px;
+        }
       }
 
       .loading {
         text-align: center;
         padding: 40px;
         color: var(--text-gray);
-        font-size: 1.2rem;
+        font-size: 1.1rem;
       }
 
       .error {
         background: #3d1f1f;
         border: 2px solid #8b3a3a;
         color: #ff6b6b;
-        padding: 20px;
+        padding: 16px;
         border-radius: 8px;
-        margin: 20px 0;
+        margin: 16px 0;
+        font-size: 0.95rem;
       }
 
+      /* ── Job Grid ── */
       .job-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
+        /* 1 col on small screens, multi-col on larger */
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 16px;
       }
 
+      @media (min-width: 480px) {
+        .job-grid {
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+        }
+      }
+
+      /* ── Job Card ── */
       .job-card {
         background: var(--purdue-medium-gray);
         border: 2px solid var(--border-color);
         border-radius: 8px;
-        padding: 20px;
+        padding: 16px;
         transition: all 0.3s ease;
       }
 
       .job-card.clickable {
         cursor: pointer;
+        /* Tap highlight on mobile */
+        -webkit-tap-highlight-color: rgba(207, 185, 145, 0.15);
       }
 
-      .job-card.clickable:hover {
+      .job-card.clickable:hover,
+      .job-card.clickable:focus-visible {
         border-color: var(--purdue-gold);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(207, 185, 145, 0.2);
+      }
+
+      /* Remove hover transform on touch devices to avoid sticky states */
+      @media (hover: none) {
+        .job-card.clickable:hover {
+          transform: none;
+        }
+        .job-card.clickable:active {
+          border-color: var(--purdue-gold);
+          background: var(--purdue-light-gray);
+        }
       }
 
       .job-card.locked {
@@ -179,42 +232,51 @@
       .job-card-header {
         display: flex;
         justify-content: space-between;
-        align-items: start;
-        margin-bottom: 15px;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        gap: 8px;
       }
 
       .job-card-title {
-        font-size: 1.3rem;
+        font-size: clamp(1rem, 4vw, 1.3rem);
         font-weight: 700;
         color: var(--purdue-gold);
-        margin-bottom: 5px;
+        margin-bottom: 4px;
+        word-break: break-word;
       }
 
       .job-id {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         color: var(--text-gray);
         font-family: 'Courier New', monospace;
+        word-break: break-all;
       }
 
       .job-card-detail {
-        margin: 10px 0;
+        margin: 8px 0;
         color: var(--text-gray);
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
       }
 
       .job-card-detail strong {
         color: var(--text-light);
-        display: inline-block;
-        width: 80px;
+        min-width: 75px;
+        flex-shrink: 0;
       }
 
+      /* ── Status Badges ── */
       .status {
         display: inline-block;
-        padding: 6px 14px;
+        padding: 5px 11px;
         border-radius: 20px;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
+        white-space: nowrap;
+        flex-shrink: 0;
       }
 
       .status.PENDING {
@@ -253,26 +315,67 @@
         border: 1px solid #ec7063;
       }
 
+      /* ── Empty State ── */
       .empty-state {
         text-align: center;
-        padding: 60px 20px;
+        padding: 40px 20px;
         color: var(--text-gray);
       }
 
       .empty-state svg {
-        width: 100px;
-        height: 100px;
-        margin-bottom: 20px;
+        width: 70px;
+        height: 70px;
+        margin-bottom: 16px;
         opacity: 0.3;
         stroke: var(--purdue-gold);
       }
 
       .empty-state h2 {
         color: var(--text-light);
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+        font-size: 1.2rem;
       }
 
-      /* Password Modal Styles */
+      .empty-state p {
+        font-size: 0.9rem;
+      }
+
+      /* ── Lock Indicator ── */
+      .lock-indicator {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        background: var(--purdue-medium-gray);
+        border: 2px solid var(--purdue-gold);
+        border-radius: 50%;
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 100;
+        /* Larger tap target */
+        touch-action: manipulation;
+      }
+
+      .lock-indicator:hover {
+        background: var(--purdue-light-gray);
+        transform: scale(1.1);
+      }
+
+      .lock-indicator svg {
+        width: 26px;
+        height: 26px;
+        stroke: var(--purdue-gold);
+      }
+
+      .lock-indicator.unlocked svg {
+        stroke: #58d68d;
+      }
+
+      /* ── Password Modal ── */
       .password-modal {
         display: none;
         position: fixed;
@@ -284,6 +387,7 @@
         z-index: 2000;
         align-items: center;
         justify-content: center;
+        padding: 16px;
       }
 
       .password-modal.active {
@@ -294,39 +398,42 @@
         background: var(--purdue-dark-gray);
         border: 3px solid var(--purdue-gold);
         border-radius: 12px;
-        padding: 40px;
+        padding: 28px 24px;
         max-width: 500px;
-        width: 90%;
+        width: 100%;
         text-align: center;
       }
 
       .password-modal-title {
-        font-size: 1.8rem;
+        font-size: clamp(1.3rem, 5vw, 1.8rem);
         color: var(--purdue-gold);
-        margin-bottom: 20px;
+        margin-bottom: 14px;
         font-weight: 700;
       }
 
       .password-modal-text {
         color: var(--text-gray);
-        margin-bottom: 30px;
-        font-size: 1.1rem;
+        margin-bottom: 24px;
+        font-size: 1rem;
       }
 
       .password-input-group {
-        margin-bottom: 30px;
+        margin-bottom: 24px;
       }
 
       .password-input-group input {
         width: 100%;
-        padding: 15px 20px;
+        padding: 14px 18px;
         background: var(--purdue-medium-gray);
         border: 2px solid var(--border-color);
         border-radius: 8px;
         color: var(--text-light);
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         text-align: center;
         transition: all 0.3s ease;
+        /* Better mobile keyboard */
+        -webkit-appearance: none;
+        appearance: none;
       }
 
       .password-input-group input:focus {
@@ -338,7 +445,7 @@
       .password-error {
         color: #ff6b6b;
         margin-top: 10px;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         display: none;
       }
 
@@ -348,15 +455,16 @@
 
       .password-submit-btn {
         width: 100%;
-        padding: 15px 20px;
+        padding: 14px 20px;
         background: var(--purdue-gold);
         color: var(--purdue-black);
         border: none;
         border-radius: 8px;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
+        touch-action: manipulation;
       }
 
       .password-submit-btn:hover {
@@ -368,39 +476,7 @@
         transform: translateY(0);
       }
 
-      .lock-indicator {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: var(--purdue-medium-gray);
-        border: 2px solid var(--purdue-gold);
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 100;
-      }
-
-      .lock-indicator:hover {
-        background: var(--purdue-light-gray);
-        transform: scale(1.1);
-      }
-
-      .lock-indicator svg {
-        width: 30px;
-        height: 30px;
-        stroke: var(--purdue-gold);
-      }
-
-      .lock-indicator.unlocked svg {
-        stroke: #58d68d;
-      }
-
-      /* Modal Styles */
+      /* ── Job Detail Modal ── */
       .modal {
         display: none;
         position: fixed;
@@ -411,13 +487,21 @@
         background: rgba(0, 0, 0, 0.9);
         z-index: 1000;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .modal.active {
         display: flex;
-        align-items: center;
+        align-items: flex-start; /* align top on mobile so content isn't cut */
         justify-content: center;
-        padding: 20px;
+        padding: 12px;
+      }
+
+      @media (min-width: 600px) {
+        .modal.active {
+          align-items: center;
+          padding: 20px;
+        }
       }
 
       .modal-content {
@@ -426,9 +510,14 @@
         border-radius: 12px;
         max-width: 900px;
         width: 100%;
-        max-height: 90vh;
+        /* Allow scrolling within modal on mobile */
+        max-height: 95vh;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         position: relative;
+        /* Push away from top on very small screens */
+        margin-top: 8px;
+        margin-bottom: 8px;
       }
 
       .modal-content.small {
@@ -437,32 +526,40 @@
 
       .modal-header {
         background: var(--purdue-black);
-        padding: 25px 30px;
+        padding: 18px 20px;
         border-bottom: 2px solid var(--purdue-gold);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 12px;
+        /* Sticky header so close button always visible on mobile */
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
 
       .modal-title {
-        font-size: 1.8rem;
+        font-size: clamp(1.1rem, 4.5vw, 1.8rem);
         color: var(--purdue-gold);
         font-weight: 700;
+        word-break: break-word;
       }
 
       .close-btn {
         background: transparent;
         border: 2px solid var(--purdue-gold);
         color: var(--purdue-gold);
-        font-size: 1.5rem;
-        width: 40px;
-        height: 40px;
+        font-size: 1.3rem;
+        width: 38px;
+        height: 38px;
+        min-width: 38px; /* prevent squishing */
         border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
+        touch-action: manipulation;
       }
 
       .close-btn:hover {
@@ -471,62 +568,78 @@
       }
 
       .modal-body {
-        padding: 30px;
+        padding: 20px;
       }
 
+      @media (min-width: 600px) {
+        .modal-body {
+          padding: 30px;
+        }
+      }
+
+      /* ── Detail Sections ── */
       .detail-section {
-        margin-bottom: 30px;
+        margin-bottom: 24px;
       }
 
       .detail-section h3 {
         color: var(--purdue-gold);
-        font-size: 1.3rem;
-        margin-bottom: 15px;
+        font-size: 1.1rem;
+        margin-bottom: 12px;
         border-bottom: 2px solid var(--border-color);
-        padding-bottom: 10px;
+        padding-bottom: 8px;
       }
 
       .detail-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        grid-template-columns: 1fr; /* single col on mobile */
+        gap: 10px;
+      }
+
+      @media (min-width: 480px) {
+        .detail-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
 
       .detail-item {
         background: var(--purdue-medium-gray);
-        padding: 15px;
+        padding: 12px;
         border-radius: 6px;
         border-left: 3px solid var(--purdue-gold);
       }
 
       .detail-label {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         color: var(--text-gray);
         text-transform: uppercase;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
       }
 
       .detail-value {
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: var(--text-light);
         font-weight: 600;
+        word-break: break-word;
       }
 
+      /* ── Download Button ── */
       .download-btn {
         width: 100%;
-        padding: 15px 20px;
+        padding: 14px 18px;
         background: var(--purdue-gold);
         color: var(--purdue-black);
         border: none;
         border-radius: 8px;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 8px;
         transition: all 0.3s ease;
+        touch-action: manipulation;
       }
 
       .download-btn:hover {
@@ -541,29 +654,42 @@
 
       .download-btn svg {
         stroke: var(--purdue-black);
+        flex-shrink: 0;
       }
 
+      /* ── Action Buttons ── */
       .action-buttons {
-        display: flex;
+        display: grid;
+        /* 2-col grid on mobile, flex-row on larger */
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
-        margin-top: 20px;
-        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+
+      @media (min-width: 600px) {
+        .action-buttons {
+          display: flex;
+          flex-wrap: wrap;
+        }
       }
 
       .action-btn {
         flex: 1;
-        min-width: 140px;
-        padding: 12px 20px;
+        min-width: 120px;
+        padding: 11px 14px;
         border: 2px solid;
         border-radius: 8px;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
+        touch-action: manipulation;
+        /* Prevent text from wrapping awkwardly */
+        white-space: nowrap;
       }
 
       .action-btn:disabled {
@@ -619,6 +745,28 @@
         transform: translateY(0);
       }
 
+      /* Suppress hover transforms on touch devices */
+      @media (hover: none) {
+        .action-btn:hover:not(:disabled) {
+          transform: none;
+        }
+        .action-btn:active:not(:disabled) {
+          opacity: 0.75;
+        }
+        .download-btn:hover {
+          transform: none;
+        }
+        .download-btn:active {
+          opacity: 0.75;
+        }
+        .new-request-btn:hover {
+          transform: none;
+        }
+        .new-request-btn:active {
+          opacity: 0.8;
+        }
+      }
+
       .tab-content {
         display: none;
       }
@@ -627,28 +775,30 @@
         display: block;
       }
 
-      /* Usage Modal Styles */
+      /* ── Usage Modal ── */
       .usage-input-group {
-        margin: 25px 0;
+        margin: 20px 0;
       }
 
       .usage-input-group label {
         display: block;
         color: var(--text-light);
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 600;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
 
       .usage-input-group input {
         width: 100%;
-        padding: 15px;
+        padding: 14px;
         background: var(--purdue-medium-gray);
         border: 2px solid var(--border-color);
         border-radius: 8px;
         color: var(--text-light);
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         transition: all 0.3s ease;
+        -webkit-appearance: none;
+        appearance: none;
       }
 
       .usage-input-group input:focus {
@@ -659,38 +809,46 @@
 
       .usage-input-group .hint {
         color: var(--text-gray);
-        font-size: 0.9rem;
-        margin-top: 8px;
+        font-size: 0.85rem;
+        margin-top: 6px;
       }
 
       .usage-modal-text {
         color: var(--text-gray);
-        font-size: 1rem;
-        margin-bottom: 20px;
+        font-size: 0.95rem;
+        margin-bottom: 14px;
         line-height: 1.6;
       }
 
       .usage-modal-job-name {
         color: var(--purdue-gold);
         font-weight: 700;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
       }
 
       .usage-modal-buttons {
         display: flex;
         gap: 10px;
-        margin-top: 25px;
+        margin-top: 20px;
+        flex-direction: column;
+      }
+
+      @media (min-width: 400px) {
+        .usage-modal-buttons {
+          flex-direction: row;
+        }
       }
 
       .usage-modal-buttons button {
         flex: 1;
-        padding: 15px 20px;
+        padding: 14px 18px;
         border: none;
         border-radius: 8px;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
+        touch-action: manipulation;
       }
 
       .usage-modal-buttons button:disabled {
@@ -720,15 +878,23 @@
       }
     </style>
   </head>
-  <div class="new-request-container">
+
+  <body>
+    <div id="app">
+      <div class="header">
+        <h1>BML Print Queue</h1>
+        <p>Boilermaker Labs - Purdue University</p>
+      </div>
+
+      <div class="new-request-container">
         <a href="/request.html" class="new-request-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
             <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
           </svg>
           New Print Request
         </a>
-        <a href="/users.html" class="new-request-btn" style="margin-left: 15px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <a href="/users.html" class="new-request-btn" style="margin-left: 0;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
             <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -737,12 +903,7 @@
           Check Usage
         </a>
       </div>
-  <body>
-    <div id="app">
-      <div class="header">
-        <h1>BML Print Queue</h1>
-        <p>Boilermaker Labs - Purdue University</p>
-      </div>
+
       <div class="tabs">
         <button class="tab active" data-tab="pending">Pending</button>
         <button class="tab" data-tab="in-progress">In Progress</button>
@@ -752,9 +913,7 @@
       </div>
 
       <div class="content">
-        <div id="loading" class="loading">
-          Loading print jobs...
-        </div>
+        <div id="loading" class="loading">Loading print jobs...</div>
 
         <div id="error" class="error" style="display: none;"></div>
 
@@ -827,20 +986,18 @@
       <div class="password-modal-content">
         <h2 class="password-modal-title">Lab Monitor Access</h2>
         <p class="password-modal-text">Enter the lab monitor password to view job details</p>
-        
+
         <div class="password-input-group">
-          <input 
-            type="password" 
-            id="password-input" 
+          <input
+            type="password"
+            id="password-input"
             placeholder="Enter password"
             autocomplete="off"
           />
           <div id="password-error" class="password-error">Incorrect password. Please try again.</div>
         </div>
 
-        <button id="password-submit-btn" class="password-submit-btn">
-          Unlock
-        </button>
+        <button id="password-submit-btn" class="password-submit-btn">Unlock</button>
       </div>
     </div>
 
@@ -885,7 +1042,7 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Material Source</div>
-               <div class="detail-value" id="modal-job-supplied">-</div>
+                <div class="detail-value" id="modal-job-supplied">-</div>
               </div>
             </div>
           </div>
@@ -927,19 +1084,19 @@
             <h3>Actions</h3>
             <div class="action-buttons">
               <button id="start-job-btn" class="action-btn start-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
                 Start Job
               </button>
               <button id="complete-job-btn" class="action-btn complete-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-                Complete Job
+                Complete
               </button>
               <button id="action-needed-btn" class="action-btn action-needed-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                   <line x1="12" y1="9" x2="12" y2="13"></line>
                   <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -947,7 +1104,7 @@
                 Action Needed
               </button>
               <button id="cancel-job-btn" class="action-btn cancel-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -973,15 +1130,16 @@
           <p class="usage-modal-text">
             Enter the estimated filament usage for this print job.
           </p>
-          
+
           <div class="usage-input-group">
             <label for="usage-input">Filament Usage (grams)</label>
-            <input 
-              type="number" 
-              id="usage-input" 
-              placeholder="0.0" 
-              step="0.1" 
+            <input
+              type="number"
+              id="usage-input"
+              placeholder="0.0"
+              step="0.1"
               min="0"
+              inputmode="decimal"
               autofocus
             />
             <div class="hint">Enter the weight in grams (e.g., 125.5)</div>
@@ -989,10 +1147,10 @@
 
           <div class="usage-modal-buttons">
             <button id="submit-usage-btn" class="submit-btn">
-              Submit & Start Job
+              Submit &amp; Start Job
             </button>
             <button id="skip-usage-btn" class="skip-btn">
-              Skip & Start
+              Skip &amp; Start
             </button>
           </div>
         </div>
