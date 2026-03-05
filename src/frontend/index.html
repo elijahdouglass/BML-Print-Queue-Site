@@ -134,18 +134,27 @@
       }
 
       .tab {
-        flex: 0 0 auto; /* don't shrink — let tabs scroll */
-        padding: 14px 18px;
+        flex: 1; /* fill full width on desktop */
+        padding: 20px;
         text-align: center;
         cursor: pointer;
         background: transparent;
         border: none;
         color: var(--text-gray);
-        font-size: clamp(0.82rem, 3vw, 1.1rem);
+        font-size: 1.1rem;
         font-weight: 600;
         transition: all 0.3s ease;
         border-bottom: 3px solid transparent;
         white-space: nowrap;
+      }
+
+      /* On small screens, don't force equal widths — let them scroll */
+      @media (max-width: 600px) {
+        .tab {
+          flex: 0 0 auto;
+          padding: 14px 18px;
+          font-size: 0.9rem;
+        }
       }
 
       .tab:hover {
