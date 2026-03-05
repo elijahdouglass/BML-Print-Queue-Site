@@ -28,6 +28,7 @@
         background: var(--purdue-black);
         min-height: 100vh;
         color: var(--text-light);
+        overflow-x: hidden;
       }
 
       #app {
@@ -45,7 +46,7 @@
       }
 
       .header h1 {
-        font-size: 2.5rem;
+        font-size: clamp(1.5rem, 6vw, 2.5rem);
         margin-bottom: 10px;
         color: var(--purdue-gold);
         font-weight: 700;
@@ -76,6 +77,7 @@
         cursor: pointer;
         transition: all 0.3s ease;
         text-decoration: none;
+        touch-action: manipulation;
       }
 
       .nav-btn:hover {
@@ -84,20 +86,31 @@
         transform: translateY(-2px);
       }
 
+      @media (hover: none) {
+        .nav-btn:hover { transform: none; }
+        .nav-btn:active { background: var(--purdue-gold); color: var(--purdue-black); }
+      }
+
       .content {
         padding: 30px;
       }
 
+      @media (max-width: 600px) {
+        .content { padding: 16px; }
+        .nav-container { padding: 14px 16px; }
+        .header { padding: 20px 16px; }
+      }
+
       .search-container {
-        margin-bottom: 30px;
+        margin-bottom: 24px;
         display: flex;
         justify-content: center;
       }
 
       .search-box {
         position: relative;
-        width: 100%;      
-        max-width: 600px; 
+        width: 100%;
+        max-width: 600px;
       }
 
       .search-input {
@@ -109,6 +122,8 @@
         color: var(--text-light);
         font-size: 1.1rem;
         transition: all 0.3s ease;
+        -webkit-appearance: none;
+        appearance: none;
       }
 
       .search-input:focus {
@@ -142,6 +157,7 @@
         margin: 20px 0;
       }
 
+      /* ── Desktop Table (hidden on mobile) ── */
       .users-table-container {
         background: var(--purdue-medium-gray);
         border: 2px solid var(--border-color);
@@ -183,6 +199,77 @@
         background: var(--purdue-light-gray);
       }
 
+      /* Hide table, show cards on mobile */
+      @media (max-width: 700px) {
+        .users-table-container {
+          display: none !important;
+        }
+      }
+
+      /* ── Mobile Cards (hidden on desktop) ── */
+      .users-card-list {
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      @media (max-width: 700px) {
+        .users-card-list {
+          display: flex;
+        }
+      }
+
+      .user-card {
+        background: var(--purdue-medium-gray);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: rgba(207, 185, 145, 0.15);
+      }
+
+      .user-card:active {
+        border-color: var(--purdue-gold);
+        background: var(--purdue-light-gray);
+      }
+
+      .user-card-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--purdue-gold);
+        margin-bottom: 4px;
+      }
+
+      .user-card-email {
+        font-size: 0.85rem;
+        color: var(--text-gray);
+        margin-bottom: 12px;
+        word-break: break-all;
+      }
+
+      .user-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .user-card-label {
+        font-size: 0.78rem;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+
+      .user-card-value {
+        font-size: 0.95rem;
+        color: var(--text-light);
+        font-weight: 600;
+      }
+
+      /* ── Shared UI Elements ── */
       .usage-bar-container {
         width: 100%;
         max-width: 200px;
@@ -230,8 +317,8 @@
       }
 
       .empty-state svg {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
         margin-bottom: 20px;
         opacity: 0.3;
         stroke: var(--purdue-gold);
@@ -242,7 +329,7 @@
         margin-bottom: 10px;
       }
 
-      /* Modal Styles */
+      /* ── Modal ── */
       .modal {
         display: none;
         position: fixed;
@@ -253,13 +340,21 @@
         background: rgba(0, 0, 0, 0.9);
         z-index: 1000;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .modal.active {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: 20px;
+        padding: 12px;
+      }
+
+      @media (min-width: 600px) {
+        .modal.active {
+          align-items: center;
+          padding: 20px;
+        }
       }
 
       .modal-content {
@@ -268,38 +363,48 @@
         border-radius: 12px;
         max-width: 900px;
         width: 100%;
-        max-height: 90vh;
+        max-height: 95vh;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 8px;
+        margin-bottom: 8px;
       }
 
       .modal-header {
         background: var(--purdue-black);
-        padding: 25px 30px;
+        padding: 18px 20px;
         border-bottom: 2px solid var(--purdue-gold);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
 
       .modal-title {
-        font-size: 1.8rem;
+        font-size: clamp(1.1rem, 4.5vw, 1.8rem);
         color: var(--purdue-gold);
         font-weight: 700;
+        word-break: break-word;
       }
 
       .close-btn {
         background: transparent;
         border: 2px solid var(--purdue-gold);
         color: var(--purdue-gold);
-        font-size: 1.5rem;
-        width: 40px;
-        height: 40px;
+        font-size: 1.3rem;
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
         border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
+        touch-action: manipulation;
       }
 
       .close-btn:hover {
@@ -308,7 +413,11 @@
       }
 
       .modal-body {
-        padding: 30px;
+        padding: 20px;
+      }
+
+      @media (min-width: 600px) {
+        .modal-body { padding: 30px; }
       }
 
       .detail-section {
@@ -317,46 +426,55 @@
 
       .detail-section h3 {
         color: var(--purdue-gold);
-        font-size: 1.3rem;
-        margin-bottom: 15px;
+        font-size: 1.2rem;
+        margin-bottom: 12px;
         border-bottom: 2px solid var(--border-color);
-        padding-bottom: 10px;
+        padding-bottom: 8px;
       }
 
       .detail-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      @media (min-width: 480px) {
+        .detail-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 15px;
+        }
       }
 
       .detail-item {
         background: var(--purdue-medium-gray);
-        padding: 15px;
+        padding: 12px 15px;
         border-radius: 6px;
         border-left: 3px solid var(--purdue-gold);
       }
 
       .detail-label {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         color: var(--text-gray);
         text-transform: uppercase;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
       }
 
       .detail-value {
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: var(--text-light);
         font-weight: 600;
+        word-break: break-word;
       }
 
       .jobs-list {
         max-height: 400px;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .job-item {
         background: var(--purdue-medium-gray);
-        padding: 15px;
+        padding: 14px;
         border-radius: 6px;
         margin-bottom: 10px;
         border-left: 3px solid var(--purdue-gold);
@@ -366,76 +484,44 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        gap: 8px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
       }
 
       .job-item-title {
         font-weight: 700;
         color: var(--purdue-gold);
+        word-break: break-word;
       }
 
       .status {
         display: inline-block;
         padding: 4px 10px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
+        white-space: nowrap;
+        flex-shrink: 0;
       }
 
-      .status.PENDING {
-        background: rgba(207, 185, 145, 0.2);
-        color: var(--purdue-gold);
-        border: 1px solid var(--purdue-gold);
-      }
-
-      .status.WAITING {
-        background: rgba(241, 196, 15, 0.2);
-        color: #f4d03f;
-        border: 1px solid #f4d03f;
-      }
-
-      .status.IN_PROGRESS {
-        background: rgba(52, 152, 219, 0.2);
-        color: #5dade2;
-        border: 1px solid #5dade2;
-      }
-
-      .status.ACTION_NEEDED {
-        background: rgba(230, 126, 34, 0.2);
-        color: #f39c12;
-        border: 1px solid #f39c12;
-      }
-
-      .status.COMPLETED {
-        background: rgba(46, 204, 113, 0.2);
-        color: #58d68d;
-        border: 1px solid #58d68d;
-      }
-
-      .status.CANCELLED, .status.FAILED {
-        background: rgba(231, 76, 60, 0.2);
-        color: #ec7063;
-        border: 1px solid #ec7063;
-      }
-
-      @media (max-width: 768px) {
-        .users-table {
-          font-size: 0.9rem;
-        }
-
-        .users-table th,
-        .users-table td {
-          padding: 12px 8px;
-        }
-
-        .detail-grid {
-          grid-template-columns: 1fr;
-        }
-      }
+      .status.PENDING { background: rgba(207, 185, 145, 0.2); color: var(--purdue-gold); border: 1px solid var(--purdue-gold); }
+      .status.WAITING { background: rgba(241, 196, 15, 0.2); color: #f4d03f; border: 1px solid #f4d03f; }
+      .status.IN_PROGRESS { background: rgba(52, 152, 219, 0.2); color: #5dade2; border: 1px solid #5dade2; }
+      .status.ACTION_NEEDED { background: rgba(230, 126, 34, 0.2); color: #f39c12; border: 1px solid #f39c12; }
+      .status.COMPLETED { background: rgba(46, 204, 113, 0.2); color: #58d68d; border: 1px solid #58d68d; }
+      .status.CANCELLED, .status.FAILED { background: rgba(231, 76, 60, 0.2); color: #ec7063; border: 1px solid #ec7063; }
     </style>
   </head>
-  <div class="nav-container">
+
+  <body>
+    <div id="app">
+      <div class="header">
+        <h1>User Filament Usage</h1>
+      </div>
+
+      <div class="nav-container">
         <a href="/" class="nav-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -443,21 +529,14 @@
           Back to Queue
         </a>
       </div>
-  <body>
-    <div id="app">
-      <div class="header">
-        <h1>User Filament Usage</h1>
-      </div>
 
-      
       <div class="content">
-        <!-- Search Box -->
         <div class="search-container">
           <div class="search-box">
-            <input 
-              type="text" 
-              id="search-input" 
-              class="search-input" 
+            <input
+              type="text"
+              id="search-input"
+              class="search-input"
               placeholder="Search users by name or email..."
             />
             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -467,13 +546,10 @@
           </div>
         </div>
 
-        <div id="loading" class="loading">
-          Loading users...
-        </div>
-
+        <div id="loading" class="loading">Loading users...</div>
         <div id="error" class="error" style="display: none;"></div>
 
-        <!-- Users Table -->
+        <!-- Desktop Table -->
         <div id="users-table-container" class="users-table-container" style="display: none;">
           <table class="users-table">
             <thead>
@@ -485,11 +561,12 @@
                 <th>Jobs</th>
               </tr>
             </thead>
-            <tbody id="users-table-body">
-              <!-- Users will be populated here -->
-            </tbody>
+            <tbody id="users-table-body"></tbody>
           </table>
         </div>
+
+        <!-- Mobile Card List -->
+        <div id="users-card-list" class="users-card-list" style="display: none;"></div>
 
         <!-- Empty State -->
         <div id="empty-state" class="empty-state" style="display: none;">
@@ -542,13 +619,97 @@
 
           <div class="detail-section">
             <h3>Recent Jobs</h3>
-            <div id="modal-jobs-list" class="jobs-list">
-              <!-- Jobs will be populated here -->
-            </div>
+            <div id="modal-jobs-list" class="jobs-list"></div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Mobile card rendering shim -->
+    <!-- 
+      Your users.ts populates #users-table-body with <tr> rows.
+      This script also builds the mobile card list from the same data.
+      It hooks into the existing renderUsers / search logic by observing
+      mutations on the table body and mirroring the cards.
+    -->
+    <script>
+      // Mirror table rows into mobile cards whenever the table body changes
+      const tableBody = document.getElementById('users-table-body');
+      const cardList  = document.getElementById('users-card-list');
+      const tableContainer = document.getElementById('users-table-container');
+
+      function isMobile() {
+        return window.innerWidth <= 700;
+      }
+
+      function syncVisibility() {
+        const hasRows = tableBody && tableBody.children.length > 0;
+        if (hasRows) {
+          if (tableContainer) tableContainer.style.display = isMobile() ? 'none' : 'block';
+          if (cardList) cardList.style.display = isMobile() ? 'flex' : 'none';
+        }
+      }
+
+      function buildCards() {
+        if (!cardList || !tableBody) return;
+        cardList.innerHTML = '';
+
+        Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (!cells.length) return;
+
+          const card = document.createElement('div');
+          card.className = 'user-card';
+
+          // Copy click handler from the row
+          card.addEventListener('click', () => row.click());
+
+          // Name
+          const name = document.createElement('div');
+          name.className = 'user-card-name';
+          name.textContent = cells[0]?.textContent?.trim() || '-';
+          card.appendChild(name);
+
+          // Email
+          const email = document.createElement('div');
+          email.className = 'user-card-email';
+          email.textContent = cells[1]?.textContent?.trim() || '-';
+          card.appendChild(email);
+
+          // Row: Discord + Jobs
+          const row1 = document.createElement('div');
+          row1.className = 'user-card-row';
+
+          const discordWrap = document.createElement('div');
+          discordWrap.innerHTML = `<div class="user-card-label">Discord</div><div class="user-card-value">${cells[2]?.textContent?.trim() || '-'}</div>`;
+          row1.appendChild(discordWrap);
+
+          const jobsWrap = document.createElement('div');
+          jobsWrap.innerHTML = `<div class="user-card-label">Jobs</div><div class="user-card-value">${cells[4]?.innerHTML?.trim() || '-'}</div>`;
+          row1.appendChild(jobsWrap);
+          card.appendChild(row1);
+
+          // Usage bar (clone inner HTML from table cell)
+          const usageWrap = document.createElement('div');
+          usageWrap.style.marginTop = '10px';
+          usageWrap.innerHTML = `<div class="user-card-label" style="margin-bottom:6px;">Filament Usage</div>${cells[3]?.innerHTML?.trim() || '-'}`;
+          card.appendChild(usageWrap);
+
+          cardList.appendChild(card);
+        });
+
+        syncVisibility();
+      }
+
+      // Watch for table body changes (when users.ts populates it)
+      if (tableBody) {
+        const observer = new MutationObserver(buildCards);
+        observer.observe(tableBody, { childList: true, subtree: true });
+      }
+
+      // Also re-sync on resize
+      window.addEventListener('resize', syncVisibility);
+    </script>
 
     <script type="module" src="/src/users.ts"></script>
   </body>
