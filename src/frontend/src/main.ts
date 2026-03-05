@@ -378,12 +378,24 @@ function closeUsageModal() {
 async function downloadSTL(job: PrintJob) {
   const url = job.stlUrl || `${BASE_URL}/api/jobs/${job.id}/stl`;
   const ext = url.split('.').pop() || 'stl';
-  
+
+  // If it's a direct URL, let the browser handle it natively
+  if (job.stlUrl) {
+    const a = document.createElement('a');
+    a.href = job.stlUrl;
+    a.download = `${job.partName}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+
+  // For API-proxied files, stream rather than buffer
   try {
-    const response = await fetch(url);
+    const response = await fetch(`${BASE_URL}/api/jobs/${job.id}/stl`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
-    
     const a = document.createElement('a');
     a.href = blobUrl;
     a.download = `${job.partName}.${ext}`;
