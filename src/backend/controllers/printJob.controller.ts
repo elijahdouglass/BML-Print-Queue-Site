@@ -175,6 +175,7 @@ export class PrintJobController {
           material: currentJob.material,
           color: currentJob.color,
           quantity: currentJob.quantity,
+          location: currentJob.pickupLocation
         }).then((sent) => {
           if (sent) {
             console.log(`Completion email sent to ${currentJob.user.email} for job ${currentJob.id}`);
@@ -194,6 +195,7 @@ export class PrintJobController {
           material: currentJob.material,
           color: currentJob.color,
           quantity: currentJob.quantity,
+          location: currentJob.pickupLocation
         }).then((sent) => {
           if (sent) {
             console.log(`Cancellation email sent to ${currentJob.user.email} for job ${currentJob.id}`);

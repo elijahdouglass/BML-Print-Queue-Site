@@ -31,7 +31,7 @@ export class PrintJobService {
         material: data.material,
         userSuppliedMaterial: data.userSuppliedMaterial,
         specialInstructions: data.specialInstructions,
-        pickupLocation: data.pickupLocation, // Added this field
+        pickupLocation: data.pickupLocation,
         stlUrl: data.stlUrl,
       },
       include: {

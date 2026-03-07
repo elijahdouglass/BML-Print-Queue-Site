@@ -21,6 +21,7 @@ interface JobCompletionEmailData {
   material: string;
   color: string;
   quantity: number;
+  location: string | null;
 }
 
 interface JobWaitingEmailData {
@@ -187,7 +188,7 @@ class EmailService {
               <span class="label">Part Name:</span> ${data.partName}
             </div>
             <div class="info-row">
-              <span class="label">Job ID:</span> ${data.jobId}
+              <span class="label">Pickup Location:</span> ${data.location}
             </div>
             <div class="info-row">
               <span class="label">Material:</span> ${data.material}
