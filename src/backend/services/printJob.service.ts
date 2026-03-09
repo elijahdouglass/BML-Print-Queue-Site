@@ -184,8 +184,6 @@ export class PrintJobService {
     return printJobs;
   }
 
-// services/printJob.service.ts - Add this method to your existing PrintJobService class
-
 /**
  * Delete all completed and cancelled jobs
  * Used for weekly reset

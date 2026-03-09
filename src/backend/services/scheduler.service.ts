@@ -14,7 +14,7 @@ class SchedulerService {
    * Day and timezone are configured via RESET_DAY and RESET_TIMEZONE env variables
    */
   initialize() {
-    const day = process.env.RESET_DAY || '1';       // 0=Sunday, 1=Monday, ..., 6=Saturday
+    const day = process.env.RESET_DAY || '1';
     const timezone = process.env.RESET_TIMEZONE || 'America/Indiana/Indianapolis';
 
     this.weeklyResetJob = cron.schedule(`0 0 * * ${day}`, async () => {

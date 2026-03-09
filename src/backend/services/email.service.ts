@@ -37,6 +37,8 @@ interface JobWaitingEmailData {
   color?: string;
 }
 
+const TIMEZONE = 'America/Indiana/Indianapolis';
+
 class EmailService {
   private transporter: nodemailer.Transporter;
 
@@ -200,7 +202,7 @@ class EmailService {
               <span class="label">Quantity:</span> ${data.quantity}
             </div>
             <div class="info-row">
-              <span class="label">Completed:</span> ${data.completedAt.toLocaleString()}
+              <span class="label">Completed:</span> ${data.completedAt.toLocaleString('en-US', { timeZone: TIMEZONE })}
             </div>
           </div>
           <p>Thank you for using Boilermaker Labs!</p>
@@ -228,7 +230,7 @@ Job Details:
 - Material: ${data.material}
 - Color: ${data.color}
 - Quantity: ${data.quantity}
-- Completed: ${data.completedAt.toLocaleString()}
+- Completed: ${data.completedAt.toLocaleString('en-US', { timeZone: TIMEZONE })}
 
 Thank you for using Boilermaker Labs!
 

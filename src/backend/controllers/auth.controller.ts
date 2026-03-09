@@ -3,14 +3,9 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bml-secret-key-change-in-production';
-const JWT_EXPIRATION = '24h';
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '24h';
 
-// For development - simple password
-// For production - use environment variable with hashed password
 const MONITOR_PASSWORD = process.env.MONITOR_PASSWORD || 'bml2025';
-
-// Optional: Hashed password for production
-// Generate with: bcrypt.hashSync('bml2025', 10)
 const MONITOR_PASSWORD_HASH = process.env.MONITOR_PASSWORD_HASH || null;
 
 /**

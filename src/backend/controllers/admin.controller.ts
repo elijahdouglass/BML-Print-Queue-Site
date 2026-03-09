@@ -8,8 +8,7 @@ export class AdminController {
    * Manually trigger weekly reset
    * POST /api/admin/reset
    * 
-   * This endpoint allows administrators to manually trigger the weekly reset
-   * without waiting for the scheduled time. Useful for testing or immediate cleanup.
+   * This endpoint allows administrators to manually trigger the weekly reset.
    */
   async triggerWeeklyReset(req: Request, res: Response) {
     try {
