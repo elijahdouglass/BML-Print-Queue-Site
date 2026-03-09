@@ -4,12 +4,13 @@ import dotenv from 'dotenv';
 import path from 'path';
 import apiRoutes from './routes/api.routes';
 import authRoutes from './routes/auth.routes';
+import schedulerService from './services/scheduler.service';
 
 // Load environment variables
 dotenv.config();
 
 const app: Express = express();
-app.set('trust proxy', 1); 
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -35,12 +36,13 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// API routes
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
-app.get('*', (req: Request, res: Response) => {
+
+app.get('*', (req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith('/api')) return next();
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
@@ -66,16 +68,19 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  schedulerService.initialize();
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
+  schedulerService.stop();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
+  schedulerService.stop();
   process.exit(0);
 });
 
