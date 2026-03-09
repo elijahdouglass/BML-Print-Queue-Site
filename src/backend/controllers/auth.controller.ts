@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bml-secret-key-change-in-production';
-const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '24h';
+const JWT_EXPIRATION = (process.env.JWT_EXPIRATION || '24h') as SignOptions['expiresIn'];
 
 const MONITOR_PASSWORD = process.env.MONITOR_PASSWORD || 'bml2025';
 const MONITOR_PASSWORD_HASH = process.env.MONITOR_PASSWORD_HASH || null;
