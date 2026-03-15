@@ -6,6 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BML Print Queue - Purdue University</title>
     <style>
+      /* ── Screen-reader only utility ── */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* ── Skip link ── */
+      .skip-link {
+        position: absolute;
+        top: -100%;
+        left: 0;
+        background: var(--purdue-gold);
+        color: var(--purdue-black);
+        padding: 12px 20px;
+        font-weight: 700;
+        font-size: 1rem;
+        z-index: 9999;
+        border-radius: 0 0 8px 0;
+        text-decoration: none;
+        transition: top 0.2s;
+      }
+
+      .skip-link:focus {
+        top: 0;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -19,7 +52,8 @@
         --purdue-medium-gray: #2d2d2d;
         --purdue-light-gray: #3d3d3d;
         --text-light: #ffffff;
-        --text-gray: #b0b0b0;
+        /* FIX: bumped from #b0b0b0 to pass 4.5:1 contrast on dark backgrounds */
+        --text-gray: #c0c0c0;
         --border-color: #404040;
       }
 
@@ -28,7 +62,6 @@
         background: var(--purdue-black);
         min-height: 100vh;
         color: var(--text-light);
-        /* Prevent horizontal overflow on mobile */
         overflow-x: hidden;
       }
 
@@ -93,7 +126,12 @@
         box-shadow: 0 2px 8px rgba(207, 185, 145, 0.3);
       }
 
-      /* Only stretch buttons to fill width on small screens */
+      /* FIX: visible focus ring for keyboard navigation */
+      .new-request-btn:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
+      }
+
       @media (max-width: 480px) {
         .new-request-btn {
           flex: 1 1 auto;
@@ -117,6 +155,8 @@
         width: 20px;
         height: 20px;
         fill: var(--purdue-black);
+        /* FIX: hide decorative icons from screen readers */
+        aria-hidden: true;
       }
 
       /* ── Tabs ── */
@@ -126,15 +166,15 @@
         border-bottom: 2px solid var(--border-color);
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Firefox */
+        scrollbar-width: none;
       }
 
       .tabs::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
+        display: none;
       }
 
       .tab {
-        flex: 1; /* fill full width on desktop */
+        flex: 1;
         padding: 20px;
         text-align: center;
         cursor: pointer;
@@ -148,7 +188,6 @@
         white-space: nowrap;
       }
 
-      /* On small screens, don't force equal widths — let them scroll */
       @media (max-width: 600px) {
         .tab {
           flex: 0 0 auto;
@@ -162,7 +201,14 @@
         color: var(--text-light);
       }
 
-      .tab.active {
+      /* FIX: visible focus ring on tabs */
+      .tab:focus-visible {
+        outline: 3px solid var(--purdue-gold);
+        outline-offset: -3px;
+      }
+
+      .tab.active,
+      .tab[aria-selected="true"] {
         color: var(--purdue-gold);
         border-bottom: 3px solid var(--purdue-gold);
         background: var(--purdue-dark-gray);
@@ -199,7 +245,6 @@
       /* ── Job Grid ── */
       .job-grid {
         display: grid;
-        /* 1 col on small screens, multi-col on larger */
         grid-template-columns: 1fr;
         gap: 14px;
         margin-top: 16px;
@@ -223,7 +268,6 @@
 
       .job-card.clickable {
         cursor: pointer;
-        /* Tap highlight on mobile */
         -webkit-tap-highlight-color: rgba(207, 185, 145, 0.15);
       }
 
@@ -232,9 +276,9 @@
         border-color: var(--purdue-gold);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(207, 185, 145, 0.2);
+        outline: none; /* border change is the focus indicator */
       }
 
-      /* Remove hover transform on touch devices to avoid sticky states */
       @media (hover: none) {
         .job-card.clickable:hover {
           transform: none;
@@ -361,7 +405,7 @@
         font-size: 0.9rem;
       }
 
-      /* ── Lock Indicator ── */
+      /* ── Lock Indicator ── FIX: changed from div to button in HTML */
       .lock-indicator {
         position: fixed;
         bottom: 16px;
@@ -377,13 +421,17 @@
         cursor: pointer;
         transition: all 0.3s ease;
         z-index: 100;
-        /* Larger tap target */
         touch-action: manipulation;
       }
 
       .lock-indicator:hover {
         background: var(--purdue-light-gray);
         transform: scale(1.1);
+      }
+
+      .lock-indicator:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
       }
 
       .lock-indicator svg {
@@ -440,6 +488,16 @@
 
       .password-input-group {
         margin-bottom: 24px;
+        text-align: left;
+      }
+
+      /* FIX: label for password input */
+      .password-input-group label {
+        display: block;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 8px;
       }
 
       .password-input-group input {
@@ -452,13 +510,13 @@
         font-size: 1.1rem;
         text-align: center;
         transition: all 0.3s ease;
-        /* Better mobile keyboard */
         -webkit-appearance: none;
         appearance: none;
       }
 
       .password-input-group input:focus {
-        outline: none;
+        outline: 3px solid var(--purdue-gold);
+        outline-offset: 2px;
         border-color: var(--purdue-gold);
         background: var(--purdue-light-gray);
       }
@@ -493,6 +551,11 @@
         transform: translateY(-2px);
       }
 
+      .password-submit-btn:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
+      }
+
       .password-submit-btn:active {
         transform: translateY(0);
       }
@@ -513,7 +576,7 @@
 
       .modal.active {
         display: flex;
-        align-items: flex-start; /* align top on mobile so content isn't cut */
+        align-items: flex-start;
         justify-content: center;
         padding: 12px;
       }
@@ -531,12 +594,10 @@
         border-radius: 12px;
         max-width: 900px;
         width: 100%;
-        /* Allow scrolling within modal on mobile */
         max-height: 95vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         position: relative;
-        /* Push away from top on very small screens */
         margin-top: 8px;
         margin-bottom: 8px;
       }
@@ -553,7 +614,6 @@
         justify-content: space-between;
         align-items: center;
         gap: 12px;
-        /* Sticky header so close button always visible on mobile */
         position: sticky;
         top: 0;
         z-index: 10;
@@ -573,7 +633,7 @@
         font-size: 1.3rem;
         width: 38px;
         height: 38px;
-        min-width: 38px; /* prevent squishing */
+        min-width: 38px;
         border-radius: 50%;
         cursor: pointer;
         display: flex;
@@ -586,6 +646,12 @@
       .close-btn:hover {
         background: var(--purdue-gold);
         color: var(--purdue-black);
+      }
+
+      /* FIX: visible focus ring on close buttons */
+      .close-btn:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
       }
 
       .modal-body {
@@ -613,7 +679,7 @@
 
       .detail-grid {
         display: grid;
-        grid-template-columns: 1fr; /* single col on mobile */
+        grid-template-columns: 1fr;
         gap: 10px;
       }
 
@@ -669,6 +735,11 @@
         box-shadow: 0 4px 12px rgba(207, 185, 145, 0.4);
       }
 
+      .download-btn:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
+      }
+
       .download-btn:active {
         transform: translateY(0);
       }
@@ -681,7 +752,6 @@
       /* ── Action Buttons ── */
       .action-buttons {
         display: grid;
-        /* 2-col grid on mobile, flex-row on larger */
         grid-template-columns: 1fr 1fr;
         gap: 10px;
         margin-top: 16px;
@@ -709,13 +779,18 @@
         justify-content: center;
         gap: 6px;
         touch-action: manipulation;
-        /* Prevent text from wrapping awkwardly */
         white-space: nowrap;
       }
 
       .action-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+
+      /* FIX: focus rings on all action buttons */
+      .action-btn:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
       }
 
       .action-btn.start-btn {
@@ -766,26 +841,13 @@
         transform: translateY(0);
       }
 
-      /* Suppress hover transforms on touch devices */
       @media (hover: none) {
-        .action-btn:hover:not(:disabled) {
-          transform: none;
-        }
-        .action-btn:active:not(:disabled) {
-          opacity: 0.75;
-        }
-        .download-btn:hover {
-          transform: none;
-        }
-        .download-btn:active {
-          opacity: 0.75;
-        }
-        .new-request-btn:hover {
-          transform: none;
-        }
-        .new-request-btn:active {
-          opacity: 0.8;
-        }
+        .action-btn:hover:not(:disabled) { transform: none; }
+        .action-btn:active:not(:disabled) { opacity: 0.75; }
+        .download-btn:hover { transform: none; }
+        .download-btn:active { opacity: 0.75; }
+        .new-request-btn:hover { transform: none; }
+        .new-request-btn:active { opacity: 0.8; }
       }
 
       .tab-content {
@@ -823,7 +885,8 @@
       }
 
       .usage-input-group input:focus {
-        outline: none;
+        outline: 3px solid var(--purdue-gold);
+        outline-offset: 2px;
         border-color: var(--purdue-gold);
         background: var(--purdue-light-gray);
       }
@@ -877,6 +940,11 @@
         cursor: not-allowed;
       }
 
+      .usage-modal-buttons button:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
+      }
+
       .usage-modal-buttons .submit-btn {
         background: var(--purdue-gold);
         color: var(--purdue-black);
@@ -901,47 +969,58 @@
   </head>
 
   <body>
+    <!-- FIX: Skip link so keyboard users can jump past nav to main content -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div id="app">
-      <div class="header">
+      <header class="header">
         <h1>BML Print Queue</h1>
         <p>Boilermaker Labs - Purdue University</p>
+      </header>
+
+      <nav aria-label="Site navigation">
+        <div class="new-request-container">
+          <!-- FIX: aria-label on links whose purpose isn't fully clear from text alone -->
+          <a href="/request.html" class="new-request-btn">
+            <!-- FIX: aria-hidden on decorative SVGs -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            New Print Request
+          </a>
+          <a href="/users.html" class="new-request-btn" style="margin-left: 15px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Check Usage
+          </a>
+        </div>
+      </nav>
+
+      <!-- FIX: role="tablist" + aria-label on tab container; role="tab" + aria-selected + aria-controls on each tab -->
+      <div class="tabs" role="tablist" aria-label="Print job status filters">
+        <button class="tab active" role="tab" aria-selected="true"  aria-controls="pending-tab"       id="tab-pending"       data-tab="pending">Pending</button>
+        <button class="tab"        role="tab" aria-selected="false" aria-controls="in-progress-tab"   id="tab-in-progress"   data-tab="in-progress">In Progress</button>
+        <button class="tab"        role="tab" aria-selected="false" aria-controls="resolved-tab"      id="tab-resolved"      data-tab="resolved">Resolved</button>
+        <button class="tab"        role="tab" aria-selected="false" aria-controls="action-needed-tab" id="tab-action-needed" data-tab="action-needed">Action Needed</button>
+        <button class="tab"        role="tab" aria-selected="false" aria-controls="waiting-tab"       id="tab-waiting"       data-tab="waiting">Waiting</button>
       </div>
 
-      <div class="new-request-container">
-        <a href="/request.html" class="new-request-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-          New Print Request
-        </a>
-        <a href="/users.html" class="new-request-btn" style="margin-left: 15px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          Check Usage
-        </a>
-      </div>
+      <!-- FIX: id="main-content" is the skip-link target; role="main" -->
+      <main id="main-content" class="content">
+        <div id="loading" class="loading" role="status" aria-live="polite">Loading print jobs...</div>
 
-      <div class="tabs">
-        <button class="tab active" data-tab="pending">Pending</button>
-        <button class="tab" data-tab="in-progress">In Progress</button>
-        <button class="tab" data-tab="resolved">Resolved</button>
-        <button class="tab" data-tab="action-needed">Action Needed</button>
-        <button class="tab" data-tab="waiting">Waiting</button>
-      </div>
+        <!-- FIX: role="alert" surfaces errors to screen readers immediately -->
+        <div id="error" class="error" role="alert" aria-live="assertive" style="display: none;"></div>
 
-      <div class="content">
-        <div id="loading" class="loading">Loading print jobs...</div>
-
-        <div id="error" class="error" style="display: none;"></div>
-
-        <div id="pending-tab" class="tab-content active">
+        <!-- FIX: role="tabpanel" + aria-labelledby pointing to its tab button -->
+        <div id="pending-tab"       class="tab-content active" role="tabpanel" aria-labelledby="tab-pending"       tabindex="0">
           <div class="job-grid" id="pending-grid"></div>
           <div id="pending-empty" class="empty-state" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <h2>No Pending Jobs</h2>
@@ -949,10 +1028,10 @@
           </div>
         </div>
 
-        <div id="action-needed-tab" class="tab-content">
+        <div id="action-needed-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-action-needed" tabindex="0">
           <div class="job-grid" id="action-needed-grid"></div>
           <div id="action-needed-empty" class="empty-state" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <h2>No Action Needed</h2>
@@ -960,10 +1039,10 @@
           </div>
         </div>
 
-        <div id="waiting-tab" class="tab-content">
+        <div id="waiting-tab"       class="tab-content" role="tabpanel" aria-labelledby="tab-waiting"       tabindex="0">
           <div class="job-grid" id="waiting-grid"></div>
           <div id="waiting-empty" class="empty-state" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h2>No Waiting Jobs</h2>
@@ -971,10 +1050,10 @@
           </div>
         </div>
 
-        <div id="in-progress-tab" class="tab-content">
+        <div id="in-progress-tab"   class="tab-content" role="tabpanel" aria-labelledby="tab-in-progress"   tabindex="0">
           <div class="job-grid" id="in-progress-grid"></div>
           <div id="in-progress-empty" class="empty-state" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h2>No Jobs In Progress</h2>
@@ -982,40 +1061,57 @@
           </div>
         </div>
 
-        <div id="resolved-tab" class="tab-content">
+        <div id="resolved-tab"      class="tab-content" role="tabpanel" aria-labelledby="tab-resolved"      tabindex="0">
           <div class="job-grid" id="resolved-grid"></div>
           <div id="resolved-empty" class="empty-state" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h2>No Resolved Jobs</h2>
             <p>Completed and cancelled jobs will appear here.</p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
 
-    <!-- Lock Indicator -->
-    <div id="lock-indicator" class="lock-indicator" title="Click to unlock">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <!-- FIX: changed from <div> to <button> so it's keyboard-accessible; aria-label replaces title -->
+    <button
+      id="lock-indicator"
+      class="lock-indicator"
+      aria-label="Unlock lab monitor access"
+      aria-pressed="false"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" focusable="false">
         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
       </svg>
-    </div>
+    </button>
 
     <!-- Password Modal -->
-    <div id="password-modal" class="password-modal">
+    <!-- FIX: role="dialog", aria-modal, aria-labelledby, aria-hidden toggled by JS -->
+    <div
+      id="password-modal"
+      class="password-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="password-modal-title"
+      aria-hidden="true"
+    >
       <div class="password-modal-content">
-        <h2 class="password-modal-title">Lab Monitor Access</h2>
-        <p class="password-modal-text">Enter the lab monitor password to view job details</p>
+        <h2 class="password-modal-title" id="password-modal-title">Lab Monitor Access</h2>
+        <p class="password-modal-text" id="password-modal-desc">Enter the lab monitor password to view job details</p>
 
         <div class="password-input-group">
+          <!-- FIX: explicit <label> for the password input -->
+          <label for="password-input">Password</label>
           <input
             type="password"
             id="password-input"
-            placeholder="Enter password"
-            autocomplete="off"
+            autocomplete="current-password"
+            aria-describedby="password-error"
+            aria-required="true"
           />
-          <div id="password-error" class="password-error">Incorrect password. Please try again.</div>
+          <!-- FIX: role="alert" so errors are announced automatically -->
+          <div id="password-error" class="password-error" role="alert" aria-live="assertive">Incorrect password. Please try again.</div>
         </div>
 
         <button id="password-submit-btn" class="password-submit-btn">Unlock</button>
@@ -1023,101 +1119,112 @@
     </div>
 
     <!-- Job Detail Modal -->
-    <div id="job-modal" class="modal">
+    <!-- FIX: role="dialog", aria-modal, aria-labelledby, aria-hidden toggled by JS -->
+    <div
+      id="job-modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-job-name"
+      aria-hidden="true"
+    >
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title" id="modal-job-name">Job Details</h2>
-          <button class="close-btn" id="close-modal">×</button>
+          <!-- FIX: aria-label on close button instead of bare × character -->
+          <button class="close-btn" id="close-modal" aria-label="Close job details">
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
         <div class="modal-body">
-          <div class="detail-section">
-            <h3>Job Information</h3>
-            <div class="detail-grid">
+          <section class="detail-section" aria-labelledby="section-job-info">
+            <h3 id="section-job-info">Job Information</h3>
+            <dl class="detail-grid">
               <div class="detail-item">
-                <div class="detail-label">Job ID</div>
-                <div class="detail-value" id="modal-job-id">-</div>
+                <dt class="detail-label">Job ID</dt>
+                <dd class="detail-value" id="modal-job-id">-</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Status</div>
-                <div class="detail-value" id="modal-job-status">-</div>
+                <dt class="detail-label">Status</dt>
+                <dd class="detail-value" id="modal-job-status">-</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Material</div>
-                <div class="detail-value" id="modal-job-material">-</div>
+                <dt class="detail-label">Material</dt>
+                <dd class="detail-value" id="modal-job-material">-</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Color</div>
-                <div class="detail-value" id="modal-job-color">-</div>
+                <dt class="detail-label">Color</dt>
+                <dd class="detail-value" id="modal-job-color">-</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Pickup</div>
-                <div class="detail-value" id="modal-job-pickup">TBD</div>
+                <dt class="detail-label">Pickup</dt>
+                <dd class="detail-value" id="modal-job-pickup">TBD</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Quantity</div>
-                <div class="detail-value" id="modal-job-quantity">-</div>
+                <dt class="detail-label">Quantity</dt>
+                <dd class="detail-value" id="modal-job-quantity">-</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Created</div>
-                <div class="detail-value" id="modal-job-created">-</div>
+                <dt class="detail-label">Created</dt>
+                <dd class="detail-value" id="modal-job-created">-</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Material Source</div>
-                <div class="detail-value" id="modal-job-supplied">-</div>
+                <dt class="detail-label">Material Source</dt>
+                <dd class="detail-value" id="modal-job-supplied">-</dd>
               </div>
-            </div>
-          </div>
+            </dl>
+          </section>
 
-          <div class="detail-section">
-            <h3>User Information</h3>
-            <div class="detail-grid">
+          <section class="detail-section" aria-labelledby="section-user-info">
+            <h3 id="section-user-info">User Information</h3>
+            <dl class="detail-grid">
               <div class="detail-item">
-                <div class="detail-label">Name</div>
-                <div class="detail-value" id="modal-user-name">-</div>
+                <dt class="detail-label">Name</dt>
+                <dd class="detail-value" id="modal-user-name">-</dd>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Email</div>
-                <div class="detail-value" id="modal-user-email">-</div>
+                <dt class="detail-label">Email</dt>
+                <dd class="detail-value" id="modal-user-email">-</dd>
               </div>
-            </div>
-          </div>
+            </dl>
+          </section>
 
-          <div class="detail-section" id="special-instructions-section">
-            <h3>Special Instructions</h3>
+          <section class="detail-section" id="special-instructions-section" aria-labelledby="section-special">
+            <h3 id="section-special">Special Instructions</h3>
             <div class="detail-item">
               <div class="detail-value" id="modal-special-instructions">None</div>
             </div>
-          </div>
+          </section>
 
-          <div class="detail-section">
-            <h3>3D Model File</h3>
+          <section class="detail-section" aria-labelledby="section-file">
+            <h3 id="section-file">3D Model File</h3>
             <button id="download-stl-btn" class="download-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
               Download File
             </button>
-          </div>
+          </section>
 
-          <div class="detail-section">
-            <h3>Actions</h3>
+          <section class="detail-section" aria-labelledby="section-actions">
+            <h3 id="section-actions">Actions</h3>
             <div class="action-buttons">
               <button id="start-job-btn" class="action-btn start-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
                 Start Job
               </button>
               <button id="complete-job-btn" class="action-btn complete-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
                 Complete
               </button>
               <button id="action-needed-btn" class="action-btn action-needed-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                   <line x1="12" y1="9" x2="12" y2="13"></line>
                   <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -1125,24 +1232,33 @@
                 Action Needed
               </button>
               <button id="cancel-job-btn" class="action-btn cancel-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
                 Cancel Job
               </button>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>
 
-    <!-- Filament Usage Modal -->
-    <div id="usage-modal" class="modal">
+    <div
+      id="usage-modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="usage-modal-title"
+      aria-hidden="true"
+    >
       <div class="modal-content small">
         <div class="modal-header">
-          <h2 class="modal-title">Record Filament Usage</h2>
-          <button class="close-btn" id="close-usage-modal">×</button>
+          <h2 class="modal-title" id="usage-modal-title">Record Filament Usage</h2>
+          <!-- FIX: aria-label on close button -->
+          <button class="close-btn" id="close-usage-modal" aria-label="Close filament usage dialog">
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
         <div class="modal-body">
           <p class="usage-modal-text">
@@ -1153,6 +1269,7 @@
           </p>
 
           <div class="usage-input-group">
+            <!-- label is already properly associated via for="usage-input" — kept as-is -->
             <label for="usage-input">Filament Usage (grams)</label>
             <input
               type="number"
@@ -1161,9 +1278,9 @@
               step="0.1"
               min="0"
               inputmode="decimal"
-              autofocus
+              aria-describedby="usage-hint"
             />
-            <div class="hint">Enter the weight in grams (e.g., 125.5)</div>
+            <div class="hint" id="usage-hint">Enter the weight in grams (e.g., 125.5)</div>
           </div>
 
           <div class="usage-modal-buttons">
@@ -1177,7 +1294,6 @@
         </div>
       </div>
     </div>
-
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

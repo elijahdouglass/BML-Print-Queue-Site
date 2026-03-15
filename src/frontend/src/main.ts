@@ -36,7 +36,7 @@ type StartJobResponse = {
   userUsage?: number
   estimatedUsage?: number
   totalUsage?: number
-  usageLimit?: number 
+  usageLimit?: number
 }
 
 type AuthResponse = {
@@ -45,128 +45,184 @@ type AuthResponse = {
   message?: string
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL
 const API_URL = `${BASE_URL}/api/jobs`
 const AUTH_URL = `${BASE_URL}/api/auth/monitor`
 const TOKEN_KEY = 'bml_monitor_token'
 
-// Password state
 let isUnlocked = false
 let authToken: string | null = null
 
-// UI Elements
-const loadingEl = document.getElementById('loading')!
-const errorEl = document.getElementById('error')!
-const tabs = document.querySelectorAll('.tab')
-const tabContents = document.querySelectorAll('.tab-content')
+// ── UI Elements ──────────────────────────────────────────────────────────────
+const loadingEl          = document.getElementById('loading')!
+const errorEl            = document.getElementById('error')!
+const tabs               = document.querySelectorAll<HTMLElement>('.tab')
+const tabContents        = document.querySelectorAll('.tab-content')
 
-// Tab grids
-const pendingGrid = document.getElementById('pending-grid')!
-const actionNeededGrid = document.getElementById('action-needed-grid')!
-const waitingGrid = document.getElementById('waiting-grid')!
-const inProgressGrid = document.getElementById('in-progress-grid')!
-const resolvedGrid = document.getElementById('resolved-grid')!
+const pendingGrid        = document.getElementById('pending-grid')!
+const actionNeededGrid   = document.getElementById('action-needed-grid')!
+const waitingGrid        = document.getElementById('waiting-grid')!
+const inProgressGrid     = document.getElementById('in-progress-grid')!
+const resolvedGrid       = document.getElementById('resolved-grid')!
 
-// Empty states
-const pendingEmpty = document.getElementById('pending-empty')!
-const actionNeededEmpty = document.getElementById('action-needed-empty')!
-const waitingEmpty = document.getElementById('waiting-empty')!
-const inProgressEmpty = document.getElementById('in-progress-empty')!
-const resolvedEmpty = document.getElementById('resolved-empty')!
+const pendingEmpty       = document.getElementById('pending-empty')!
+const actionNeededEmpty  = document.getElementById('action-needed-empty')!
+const waitingEmpty       = document.getElementById('waiting-empty')!
+const inProgressEmpty    = document.getElementById('in-progress-empty')!
+const resolvedEmpty      = document.getElementById('resolved-empty')!
 
-// Modal elements
-const modal = document.getElementById('job-modal')!
-const usageModal = document.getElementById('usage-modal')!
-const closeModalBtn = document.getElementById('close-modal')!
+const modal              = document.getElementById('job-modal')!
+const usageModal         = document.getElementById('usage-modal')!
+const closeModalBtn      = document.getElementById('close-modal')!
 const closeUsageModalBtn = document.getElementById('close-usage-modal')!
-const modalJobName = document.getElementById('modal-job-name')!
-const modalJobId = document.getElementById('modal-job-id')!
-const modalJobStatus = document.getElementById('modal-job-status')!
-const modalJobMaterial = document.getElementById('modal-job-material')!
-const modalJobColor = document.getElementById('modal-job-color')!
-const modalJobPickup = document.getElementById('modal-job-pickup')!
-const modalJobQuantity = document.getElementById('modal-job-quantity')!
-const modalJobCreated = document.getElementById('modal-job-created')!
-const modalUserName = document.getElementById('modal-user-name')!
-const modalUserEmail = document.getElementById('modal-user-email')!
+const modalJobName       = document.getElementById('modal-job-name')!
+const modalJobId         = document.getElementById('modal-job-id')!
+const modalJobStatus     = document.getElementById('modal-job-status')!
+const modalJobMaterial   = document.getElementById('modal-job-material')!
+const modalJobColor      = document.getElementById('modal-job-color')!
+const modalJobPickup     = document.getElementById('modal-job-pickup')!
+const modalJobQuantity   = document.getElementById('modal-job-quantity')!
+const modalJobCreated    = document.getElementById('modal-job-created')!
+const modalUserName      = document.getElementById('modal-user-name')!
+const modalUserEmail     = document.getElementById('modal-user-email')!
 const modalSpecialInstructions = document.getElementById('modal-special-instructions')!
-const downloadStlBtn = document.getElementById('download-stl-btn')!
-const startJobBtn = document.getElementById('start-job-btn')!
-const completeJobBtn = document.getElementById('complete-job-btn')!
-const actionNeededBtn = document.getElementById('action-needed-btn')!
-const cancelJobBtn = document.getElementById('cancel-job-btn')!
+const downloadStlBtn     = document.getElementById('download-stl-btn')!
+const startJobBtn        = document.getElementById('start-job-btn') as HTMLButtonElement
+const completeJobBtn     = document.getElementById('complete-job-btn') as HTMLButtonElement
+const actionNeededBtn    = document.getElementById('action-needed-btn') as HTMLButtonElement
+const cancelJobBtn       = document.getElementById('cancel-job-btn') as HTMLButtonElement
 
-// Usage modal elements
-const usageJobNameEl = document.getElementById('usage-job-name')!
-const usageInputEl = document.getElementById('usage-input') as HTMLInputElement
-const submitUsageBtn = document.getElementById('submit-usage-btn')!
-const skipUsageBtn = document.getElementById('skip-usage-btn')!
+const usageJobNameEl     = document.getElementById('usage-job-name')!
+const usageInputEl       = document.getElementById('usage-input') as HTMLInputElement
+const submitUsageBtn     = document.getElementById('submit-usage-btn') as HTMLButtonElement
+const skipUsageBtn       = document.getElementById('skip-usage-btn')!
 
-// Password modal elements
-const passwordModal = document.getElementById('password-modal')!
-const passwordInput = document.getElementById('password-input') as HTMLInputElement
-const passwordSubmitBtn = document.getElementById('password-submit-btn')!
-const passwordError = document.getElementById('password-error')!
-const lockIndicator = document.getElementById('lock-indicator')!
+const passwordModal      = document.getElementById('password-modal')!
+const passwordInput      = document.getElementById('password-input') as HTMLInputElement
+const passwordSubmitBtn  = document.getElementById('password-submit-btn') as HTMLButtonElement
+const passwordError      = document.getElementById('password-error')!
+const lockIndicator      = document.getElementById('lock-indicator')!
 
-let allJobs: PrintJob[] = []
+let allJobs: PrintJob[]      = []
 let currentJob: PrintJob | null = null
 let pendingStartJobId: string | null = null
 
-// Password functionality
+function makeFocusTrap(container: HTMLElement): (e: KeyboardEvent) => void {
+  return (e: KeyboardEvent) => {
+    if (e.key !== 'Tab') return
+    const focusable = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter(el => !el.closest('[aria-hidden="true"]'))
+
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last  = focusable[focusable.length - 1]
+
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus() }
+    } else {
+      if (document.activeElement === last)  { e.preventDefault(); first.focus() }
+    }
+  }
+}
+
+let jobModalTrap:      ((e: KeyboardEvent) => void) | null = null
+let usageModalTrap:    ((e: KeyboardEvent) => void) | null = null
+let passwordModalTrap: ((e: KeyboardEvent) => void) | null = null
+
+let previouslyFocused: HTMLElement | null = null
+
+function openModalEl(
+  el: HTMLElement,
+  trapRef: { value: ((e: KeyboardEvent) => void) | null },
+  firstFocusTarget?: HTMLElement
+) {
+  previouslyFocused = document.activeElement as HTMLElement
+  el.classList.add('active')
+  el.setAttribute('aria-hidden', 'false')
+  document.body.style.overflow = 'hidden'
+
+  const trap = makeFocusTrap(el)
+  trapRef.value = trap
+  document.addEventListener('keydown', trap)
+
+  // Move focus into the modal
+  const target = firstFocusTarget ?? el.querySelector<HTMLElement>(
+    'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )
+  setTimeout(() => target?.focus(), 50)
+}
+
+function closeModalEl(
+  el: HTMLElement,
+  trapRef: { value: ((e: KeyboardEvent) => void) | null }
+) {
+  el.classList.remove('active')
+  el.setAttribute('aria-hidden', 'true')
+  document.body.style.overflow = 'auto'
+
+  if (trapRef.value) {
+    document.removeEventListener('keydown', trapRef.value)
+    trapRef.value = null
+  }
+
+  // Return focus to the element that opened the modal
+  previouslyFocused?.focus()
+  previouslyFocused = null
+}
+
 function showPasswordModal() {
-  passwordModal.classList.add('active')
   passwordInput.value = ''
-  passwordError?.classList.remove('show')
+  passwordError.classList.remove('show')
   passwordSubmitBtn.disabled = false
   passwordSubmitBtn.textContent = 'Unlock'
-  setTimeout(() => passwordInput.focus(), 100)
+  openModalEl(passwordModal, { get value() { return passwordModalTrap }, set value(v) { passwordModalTrap = v } }, passwordInput)
 }
 
 function hidePasswordModal() {
-  passwordModal.classList.remove('active')
+  closeModalEl(passwordModal, { get value() { return passwordModalTrap }, set value(v) { passwordModalTrap = v } })
 }
 
 async function checkPassword() {
   const enteredPassword = passwordInput.value
-  
+
   if (!enteredPassword) {
-    passwordError!.textContent = 'Please enter a password'
-    passwordError?.classList.add('show')
+    passwordError.textContent = 'Please enter a password'
+    passwordError.classList.add('show')
+    passwordError.setAttribute('aria-live', 'assertive')
     return
   }
-  
+
   passwordSubmitBtn.disabled = true
   passwordSubmitBtn.textContent = 'Authenticating...'
-  
+
   try {
-    const res = await fetch(AUTH_URL, {
+    const res  = await fetch(AUTH_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: enteredPassword })
     })
-    
     const json: AuthResponse = await res.json()
-    
+
     if (res.ok && json.success && json.token) {
-      // Authentication successful
       authToken = json.token
       localStorage.setItem(TOKEN_KEY, json.token)
       isUnlocked = true
       updateLockState()
       hidePasswordModal()
-      renderAllTabs() // Re-render cards with clickable state
+      renderAllTabs()
     } else {
-      // Authentication failed
-      passwordError!.textContent = json.message || 'Incorrect password. Please try again.'
-      passwordError?.classList.add('show')
+      passwordError.textContent = json.message || 'Incorrect password. Please try again.'
+      passwordError.classList.add('show')
       passwordInput.value = ''
       passwordInput.focus()
     }
   } catch (err) {
     console.error('Authentication error:', err)
-    passwordError!.textContent = 'Authentication failed. Please try again.'
-    passwordError?.classList.add('show')
+    passwordError.textContent = 'Authentication failed. Please try again.'
+    passwordError.classList.add('show')
   } finally {
     passwordSubmitBtn.disabled = false
     passwordSubmitBtn.textContent = 'Unlock'
@@ -175,11 +231,13 @@ async function checkPassword() {
 
 function updateLockState() {
   if (isUnlocked) {
-    lockIndicator?.classList.add('unlocked')
-    lockIndicator?.setAttribute('title', 'Click to lock')
+    lockIndicator.classList.add('unlocked')
+    lockIndicator.setAttribute('aria-label', 'Lock lab monitor access')
+    lockIndicator.setAttribute('aria-pressed', 'true')
   } else {
-    lockIndicator?.classList.remove('unlocked')
-    lockIndicator?.setAttribute('title', 'Click to unlock')
+    lockIndicator.classList.remove('unlocked')
+    lockIndicator.setAttribute('aria-label', 'Unlock lab monitor access')
+    lockIndicator.setAttribute('aria-pressed', 'false')
   }
 }
 
@@ -188,11 +246,10 @@ function logout() {
   authToken = null
   localStorage.removeItem(TOKEN_KEY)
   updateLockState()
-  renderAllTabs() // Re-render cards as locked
-  closeModal() // Close any open modals
+  renderAllTabs()
+  closeJobModal()
 }
 
-// Check for existing token on load
 function checkExistingToken() {
   const savedToken = localStorage.getItem(TOKEN_KEY)
   if (savedToken) {
@@ -202,65 +259,144 @@ function checkExistingToken() {
   }
 }
 
-// Lock indicator click
-lockIndicator?.addEventListener('click', () => {
+lockIndicator.addEventListener('click', () => {
   if (!isUnlocked) {
     showPasswordModal()
   } else {
-    // Logout when clicking while unlocked
     if (confirm('Lock the interface? You will need to enter the password again.')) {
       logout()
     }
   }
 })
 
-// Password submit
-passwordSubmitBtn?.addEventListener('click', checkPassword)
+passwordSubmitBtn.addEventListener('click', checkPassword)
+passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword() })
 
-// Password input enter key
-passwordInput?.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    checkPassword()
-  }
+passwordModal.addEventListener('click', (e) => {
+  if (e.target === passwordModal) hidePasswordModal()
 })
 
-// Close password modal on escape
-passwordModal?.addEventListener('click', (e) => {
-  if (e.target === passwordModal) {
-    hidePasswordModal()
-  }
-})
-
-// Tab switching
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     const tabName = tab.getAttribute('data-tab')!
-    
-    tabs.forEach(t => t.classList.remove('active'))
+
+    // FIX: update aria-selected on all tabs
+    tabs.forEach(t => {
+      t.classList.remove('active')
+      t.setAttribute('aria-selected', 'false')
+    })
     tab.classList.add('active')
-    
+    tab.setAttribute('aria-selected', 'true')
+
     tabContents.forEach(content => content.classList.remove('active'))
     document.getElementById(`${tabName}-tab`)!.classList.add('active')
   })
+
+  tab.addEventListener('keydown', (e) => {
+    const tabArray = Array.from(tabs)
+    const idx = tabArray.indexOf(tab)
+    let next: HTMLElement | null = null
+
+    if (e.key === 'ArrowRight') next = tabArray[(idx + 1) % tabArray.length] as HTMLElement
+    if (e.key === 'ArrowLeft')  next = tabArray[(idx - 1 + tabArray.length) % tabArray.length] as HTMLElement
+    if (e.key === 'Home')       next = tabArray[0] as HTMLElement
+    if (e.key === 'End')        next = tabArray[tabArray.length - 1] as HTMLElement
+
+    if (next) {
+      e.preventDefault()
+      next.focus()
+      next.click() // activate the tab as well
+    }
+  })
 })
 
-// Modal controls
-closeModalBtn.addEventListener('click', closeModal)
-modal.addEventListener('click', (e) => {
-  if (e.target === modal) closeModal()
-})
+function openJobModal(job: PrintJob) {
+  if (!isUnlocked) { showPasswordModal(); return }
+
+  currentJob = job
+  modalJobName.textContent    = job.partName
+  modalJobId.textContent      = job.id
+  modalJobStatus.innerHTML    = `<span class="status ${job.status}"><span class="sr-only">Status: </span>${job.status.replace('_', ' ')}</span>`
+  modalJobMaterial.textContent  = job.material
+  modalJobColor.textContent     = job.color
+  modalJobPickup.textContent    = job.pickupLocation || 'TBD'
+  modalJobQuantity.textContent  = job.quantity.toString()
+  modalJobCreated.textContent   = new Date(job.createdAt).toLocaleString()
+  modalUserName.textContent     = job.user.name
+  modalUserEmail.textContent    = job.user.email
+  modalSpecialInstructions.textContent = job.specialInstructions || 'None'
+  document.getElementById('modal-job-supplied')!.textContent = job.userSuppliedMaterial ? 'User supplied' : 'Lab stock'
+  updateActionButtons(job.status)
+
+  openModalEl(modal, { get value() { return jobModalTrap }, set value(v) { jobModalTrap = v } }, closeModalBtn)
+}
+
+function closeJobModal() {
+  currentJob = null
+  closeModalEl(modal, { get value() { return jobModalTrap }, set value(v) { jobModalTrap = v } })
+}
+
+closeModalBtn.addEventListener('click', closeJobModal)
+modal.addEventListener('click', (e) => { if (e.target === modal) closeJobModal() })
+
+function openUsageModal(job: PrintJob) {
+  usageJobNameEl.textContent = job.partName
+  usageInputEl.value = ''
+  openModalEl(usageModal, { get value() { return usageModalTrap }, set value(v) { usageModalTrap = v } }, usageInputEl)
+}
+
+function closeUsageModal() {
+  pendingStartJobId = null
+  closeModalEl(usageModal, { get value() { return usageModalTrap }, set value(v) { usageModalTrap = v } })
+}
 
 closeUsageModalBtn.addEventListener('click', closeUsageModal)
-usageModal.addEventListener('click', (e) => {
-  if (e.target === usageModal) closeUsageModal()
+usageModal.addEventListener('click', (e) => { if (e.target === usageModal) closeUsageModal() })
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return
+  if (passwordModal.getAttribute('aria-hidden') === 'false') { hidePasswordModal(); return }
+  if (usageModal.getAttribute('aria-hidden') === 'false')    { closeUsageModal();   return }
+  if (modal.getAttribute('aria-hidden') === 'false')         { closeJobModal();     return }
 })
 
 downloadStlBtn.addEventListener('click', () => {
   if (currentJob) downloadSTL(currentJob)
 })
 
-startJobBtn.addEventListener('click', async () => {
-  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'WAITING' || currentJob.status === 'ACTION_NEEDED')) {
+async function downloadSTL(job: PrintJob) {
+  const url = job.stlUrl || `${BASE_URL}/api/jobs/${job.id}/stl`
+  const ext = url.split('.').pop() || 'stl'
+
+  if (job.stlUrl) {
+    const a = document.createElement('a')
+    a.href = job.stlUrl
+    a.download = `${job.partName}.${ext}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    return
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/jobs/${job.id}/stl`)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const blob   = await response.blob()
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = `${job.partName}.${ext}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(blobUrl)
+  } catch (error) {
+    console.error('Download failed:', error)
+  }
+}
+
+startJobBtn.addEventListener('click', () => {
+  if (currentJob && ['PENDING', 'WAITING', 'ACTION_NEEDED'].includes(currentJob.status)) {
     pendingStartJobId = currentJob.id
     openUsageModal(currentJob)
   }
@@ -273,7 +409,7 @@ completeJobBtn.addEventListener('click', async () => {
 })
 
 actionNeededBtn.addEventListener('click', async () => {
-  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS')) {
+  if (currentJob && ['PENDING', 'IN_PROGRESS'].includes(currentJob.status)) {
     if (confirm(`Mark "${currentJob.partName}" as needing user action?\n\nThis will indicate to the user that input is required.`)) {
       await updateJobStatus(currentJob.id, 'ACTION_NEEDED')
     }
@@ -281,7 +417,7 @@ actionNeededBtn.addEventListener('click', async () => {
 })
 
 cancelJobBtn.addEventListener('click', async () => {
-  if (currentJob && (currentJob.status === 'PENDING' || currentJob.status === 'IN_PROGRESS' || currentJob.status === 'WAITING' || currentJob.status === 'ACTION_NEEDED')) {
+  if (currentJob && ['PENDING', 'IN_PROGRESS', 'WAITING', 'ACTION_NEEDED'].includes(currentJob.status)) {
     if (confirm(`Are you sure you want to cancel the job "${currentJob.partName}"?`)) {
       await updateJobStatus(currentJob.id, 'CANCELLED')
     }
@@ -290,22 +426,20 @@ cancelJobBtn.addEventListener('click', async () => {
 
 submitUsageBtn.addEventListener('click', async () => {
   const usageValue = parseFloat(usageInputEl.value)
-  
+
   if (isNaN(usageValue) || usageValue < 0) {
     alert('Please enter a valid filament usage amount (grams)')
     return
   }
-  
   if (usageValue > 300) {
-    alert('Job rejected: Filament usage cannot exceed 300g.\n\nThis job requires ' + usageValue + 'g, which is over the 300g limit.')
+    alert(`Job rejected: Filament usage cannot exceed 300g.\n\nThis job requires ${usageValue}g, which is over the 300g limit.`)
     return
   }
-
   if (!pendingStartJobId || !currentJob) return
-  
+
   submitUsageBtn.disabled = true
   submitUsageBtn.textContent = 'Saving...'
-  
+
   try {
     const res = await fetch(`${API_URL}/${pendingStartJobId}/start`, {
       method: 'POST',
@@ -313,21 +447,11 @@ submitUsageBtn.addEventListener('click', async () => {
       body: JSON.stringify({ usage: usageValue })
     })
 
-    if (res.status === 401 || res.status === 403) {
-      logout()
-      alert('Session expired. Please log in again.')
-      return
-    }
-
-    if (!res.ok) {
-      throw new Error(`Failed to start job: ${res.status}`)
-    }
+    if (res.status === 401 || res.status === 403) { logout(); alert('Session expired. Please log in again.'); return }
+    if (!res.ok) throw new Error(`Failed to start job: ${res.status}`)
 
     const json: StartJobResponse = await res.json()
-
-    if (!json.success) {
-      throw new Error('API returned failure when starting job')
-    }
+    if (!json.success) throw new Error('API returned failure when starting job')
 
     if (json.data.status === 'WAITING') {
       alert(`Job set to WAITING status.\n\nUser has ${json.userUsage}g used.\nThis job would add ${json.estimatedUsage}g.\nTotal would be ${json.totalUsage}g, exceeding the ${json.usageLimit}g limit.`)
@@ -335,7 +459,7 @@ submitUsageBtn.addEventListener('click', async () => {
 
     await loadPrintJobs()
     closeUsageModal()
-    closeModal()
+    closeJobModal()
   } catch (err) {
     console.error('Error starting job:', err)
     alert(`Error: ${err instanceof Error ? err.message : 'Failed to start job'}`)
@@ -348,12 +472,11 @@ submitUsageBtn.addEventListener('click', async () => {
 
 skipUsageBtn.addEventListener('click', async () => {
   if (!pendingStartJobId) return
-  
   if (confirm('Are you sure you want to start this job without recording filament usage?')) {
     try {
       await updateJobStatus(pendingStartJobId, 'IN_PROGRESS')
       closeUsageModal()
-      closeModal()
+      closeJobModal()
     } catch (err) {
       console.error('Error starting job:', err)
       alert(`Error: ${err instanceof Error ? err.message : 'Failed to start job'}`)
@@ -363,61 +486,11 @@ skipUsageBtn.addEventListener('click', async () => {
   }
 })
 
-function openUsageModal(job: PrintJob) {
-  usageJobNameEl.textContent = job.partName
-  usageInputEl.value = ''
-  usageInputEl.focus()
-  usageModal.classList.add('active')
-}
+usageInputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitUsageBtn.click() })
 
-function closeUsageModal() {
-  usageModal.classList.remove('active')
-  pendingStartJobId = null
-}
-
-async function downloadSTL(job: PrintJob) {
-  const url = job.stlUrl || `${BASE_URL}/api/jobs/${job.id}/stl`;
-  const ext = url.split('.').pop() || 'stl';
-
-  // If it's a direct URL, let the browser handle it natively
-  if (job.stlUrl) {
-    const a = document.createElement('a');
-    a.href = job.stlUrl;
-    a.download = `${job.partName}.${ext}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    return;
-  }
-
-  // For API-proxied files, stream rather than buffer
-  try {
-    const response = await fetch(`${BASE_URL}/api/jobs/${job.id}/stl`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = `${job.partName}.${ext}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
-  } catch (error) {
-    console.error('Download failed:', error);
-  }
-}
-
-// Helper function to get headers with JWT
 function getAuthHeaders(): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json'
-  }
-  
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`
-  }
-  
+  const headers: HeadersInit = { 'Content-Type': 'application/json' }
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`
   return headers
 }
 
@@ -429,21 +502,13 @@ async function updateJobStatus(jobId: string, newStatus: string) {
       body: JSON.stringify({ status: newStatus })
     })
 
-    if (res.status === 401 || res.status === 403) {
-      // Token expired or invalid
-      logout()
-      alert('Session expired. Please log in again.')
-      return
-    }
-
-    if (!res.ok) {
-      throw new Error(`Failed to update job status: ${res.status}`)
-    }
+    if (res.status === 401 || res.status === 403) { logout(); alert('Session expired. Please log in again.'); return }
+    if (!res.ok) throw new Error(`Failed to update job status: ${res.status}`)
 
     const json = await res.json()
-
     if (json.success) {
       await loadPrintJobs()
+      closeJobModal()
     } else {
       alert('Failed to update job status')
     }
@@ -454,96 +519,34 @@ async function updateJobStatus(jobId: string, newStatus: string) {
 }
 
 function updateActionButtons(status: string) {
-  startJobBtn.disabled = false
-  completeJobBtn.disabled = false
-  actionNeededBtn.disabled = false
-  cancelJobBtn.disabled = false
+  const isPending    = status === 'PENDING'
+  const isWaiting    = status === 'WAITING'
+  const isInProgress = status === 'IN_PROGRESS'
+  const isActionNeeded = status === 'ACTION_NEEDED'
+  const isResolved   = ['COMPLETED', 'CANCELLED', 'FAILED'].includes(status)
 
-  if (status === 'PENDING' || status === 'WAITING') {
-    startJobBtn.disabled = false
-    completeJobBtn.disabled = true
-    actionNeededBtn.disabled = false
-    cancelJobBtn.disabled = false
-  } else if (status === 'IN_PROGRESS') {
-    startJobBtn.disabled = true
-    completeJobBtn.disabled = false
-    actionNeededBtn.disabled = false
-    cancelJobBtn.disabled = false
-  } else if (status === 'ACTION_NEEDED') {
-    startJobBtn.disabled = false
-    completeJobBtn.disabled = true
-    actionNeededBtn.disabled = true
-    cancelJobBtn.disabled = false
-  } else {
-    startJobBtn.disabled = true
-    completeJobBtn.disabled = true
-    actionNeededBtn.disabled = true
-    cancelJobBtn.disabled = true
-  }
-}
-
-function openModal(job: PrintJob) {
-  // Only allow opening modal if unlocked
-  if (!isUnlocked) {
-    showPasswordModal()
-    return
-  }
-
-  currentJob = job
-  modalJobName.textContent = job.partName
-  modalJobId.textContent = job.id
-  modalJobStatus.innerHTML = `<span class="status ${job.status}">${job.status}</span>`
-  modalJobMaterial.textContent = job.material
-  modalJobColor.textContent = job.color
-  modalJobPickup.textContent = job.pickupLocation || 'TBD'
-  modalJobQuantity.textContent = job.quantity.toString()
-  modalJobCreated.textContent = new Date(job.createdAt).toLocaleString()
-  modalUserName.textContent = job.user.name
-  modalUserEmail.textContent = job.user.email
-  modalSpecialInstructions.textContent = job.specialInstructions || 'None'
-  modalSpecialInstructions.textContent = job.specialInstructions || 'None'
-  document.getElementById('modal-job-supplied')!.textContent = job.userSuppliedMaterial ? 'User supplied' : 'Lab stock'
-  updateActionButtons(job.status)
-  
-  modal.classList.add('active')
-  document.body.style.overflow = 'hidden'
-}
-
-function closeModal() {
-  modal.classList.remove('active')
-  document.body.style.overflow = 'auto'
+  startJobBtn.disabled    = isInProgress || isResolved
+  completeJobBtn.disabled = !isInProgress
+  actionNeededBtn.disabled = isActionNeeded || isResolved
+  cancelJobBtn.disabled   = isResolved
 }
 
 async function loadPrintJobs() {
   try {
     showLoading()
+    const res = await fetch(API_URL, { headers: getAuthHeaders() })
 
-    const res = await fetch(API_URL, {
-      headers: getAuthHeaders()
-    })
-    
     if (res.status === 401 || res.status === 403) {
-      // Token expired or invalid
-      if (isUnlocked) {
-        logout()
-        alert('Session expired. Please log in again.')
-      }
+      if (isUnlocked) { logout(); alert('Session expired. Please log in again.') }
       hideLoading()
       return
     }
-    
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`)
-    }
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
 
     const json: ApiResponse = await res.json()
-
-    if (!json.success) {
-      throw new Error('API returned failure')
-    }
+    if (!json.success) throw new Error('API returned failure')
 
     allJobs = json.data || []
-
     hideLoading()
     renderAllTabs()
   } catch (err) {
@@ -554,83 +557,59 @@ async function loadPrintJobs() {
 }
 
 function renderAllTabs() {
-  const pendingJobs = allJobs.filter(job => job.status === 'PENDING')
-  const actionNeededJobs = allJobs.filter(job => job.status === 'ACTION_NEEDED')
-  const waitingJobs = allJobs.filter(job => job.status === 'WAITING')
-  const inProgressJobs = allJobs.filter(job => job.status === 'IN_PROGRESS')
-  const resolvedJobs = allJobs.filter(job => 
-    job.status === 'COMPLETED' || job.status === 'CANCELLED' || job.status === 'FAILED'
-  )
-
-  renderTab(pendingJobs, pendingGrid, pendingEmpty)
-  renderTab(actionNeededJobs, actionNeededGrid, actionNeededEmpty)
-  renderTab(waitingJobs, waitingGrid, waitingEmpty)
-  renderTab(inProgressJobs, inProgressGrid, inProgressEmpty)
-  renderTab(resolvedJobs, resolvedGrid, resolvedEmpty)
+  renderTab(allJobs.filter(j => j.status === 'PENDING'),                                                         pendingGrid,      pendingEmpty)
+  renderTab(allJobs.filter(j => j.status === 'ACTION_NEEDED'),                                                   actionNeededGrid, actionNeededEmpty)
+  renderTab(allJobs.filter(j => j.status === 'WAITING'),                                                         waitingGrid,      waitingEmpty)
+  renderTab(allJobs.filter(j => j.status === 'IN_PROGRESS'),                                                     inProgressGrid,   inProgressEmpty)
+  renderTab(allJobs.filter(j => ['COMPLETED','CANCELLED','FAILED'].includes(j.status)),                          resolvedGrid,     resolvedEmpty)
 }
 
 function renderTab(jobs: PrintJob[], gridEl: HTMLElement, emptyEl: HTMLElement) {
   gridEl.innerHTML = ''
-  
-  if (jobs.length === 0) {
-    emptyEl.style.display = 'block'
-    return
-  }
-  
+  if (jobs.length === 0) { emptyEl.style.display = 'block'; return }
   emptyEl.style.display = 'none'
-  
-  jobs.forEach(job => {
-    const card = createJobCard(job)
-    gridEl.appendChild(card)
-  })
+  jobs.forEach(job => gridEl.appendChild(createJobCard(job)))
 }
 
 function createJobCard(job: PrintJob): HTMLElement {
-  const card = document.createElement('div')
+  const card = document.createElement('button')
   card.className = 'job-card'
-  
-  // Only make cards clickable if unlocked
+  card.type = 'button'
+
   if (isUnlocked) {
     card.classList.add('clickable')
-    card.onclick = () => openModal(job)
+    card.addEventListener('click', () => openJobModal(job))
+    card.setAttribute('aria-label', `View details for ${job.partName}, status: ${job.status.replace('_', ' ')}`)
   } else {
     card.classList.add('locked')
-    card.onclick = () => showPasswordModal()
+    card.addEventListener('click', () => showPasswordModal())
+    card.setAttribute('aria-label', `${job.partName} – locked. Click to unlock.`)
   }
-  
+
   card.innerHTML = `
     <div class="job-card-header">
       <div>
         <div class="job-card-title">${job.partName}</div>
-        <div class="job-id">${job.id.substring(0, 12)}...</div>
+        <div class="job-id" aria-label="Job ID: ${job.id.substring(0, 12)}">${job.id.substring(0, 12)}...</div>
       </div>
-      <span class="status ${job.status}">${job.status.replace('_', ' ')}</span>
+      <span class="status ${job.status}" aria-hidden="true">${job.status.replace('_', ' ')}</span>
     </div>
-    <div class="job-card-detail">
-      <strong>User:</strong> ${job.user.name}
-    </div>
-    <div class="job-card-detail">
-      <strong>Material:</strong> ${job.material}
-    </div>
-    <div class="job-card-detail">
-      <strong>Color:</strong> ${job.color}
-    </div>
-    <div class="job-card-detail">
-      <strong>Quantity:</strong> ${job.quantity}
-    </div>
-    <div class="job-card-detail">
-      <strong>Pickup:</strong> ${job.pickupLocation || 'TBD'}
-    </div>
-    <div class="job-card-detail">
-      <strong>Created:</strong> ${new Date(job.createdAt).toLocaleDateString()}
-    </div>
+    <dl>
+      <div class="job-card-detail"><dt><strong>User</strong></dt><dd>${job.user.name}</dd></div>
+      <div class="job-card-detail"><dt><strong>Material</strong></dt><dd>${job.material}</dd></div>
+      <div class="job-card-detail"><dt><strong>Color</strong></dt><dd>${job.color}</dd></div>
+      <div class="job-card-detail"><dt><strong>Quantity</strong></dt><dd>${job.quantity}</dd></div>
+      <div class="job-card-detail"><dt><strong>Pickup</strong></dt><dd>${job.pickupLocation || 'TBD'}</dd></div>
+      <div class="job-card-detail"><dt><strong>Created</strong></dt><dd>${new Date(job.createdAt).toLocaleDateString()}</dd></div>
+    </dl>
   `
-  
+
   return card
 }
 
 function showLoading() {
   loadingEl.style.display = 'block'
+  loadingEl.textContent = 'Loading print jobs...'
   errorEl.style.display = 'none'
 }
 
@@ -643,23 +622,6 @@ function showError(message: string) {
   errorEl.style.display = 'block'
 }
 
-// Initialize
 checkExistingToken()
 loadPrintJobs()
 setInterval(loadPrintJobs, 30000)
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (passwordModal.classList.contains('active')) {
-      hidePasswordModal()
-    } else if (usageModal.classList.contains('active')) {
-      closeUsageModal()
-    } else if (modal.classList.contains('active')) {
-      closeModal()
-    }
-  }
-})
-
-usageInputEl.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') submitUsageBtn.click()
-})
