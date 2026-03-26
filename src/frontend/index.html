@@ -6,6 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BML Print Queue - Purdue University</title>
     <style>
+      
+      /*
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⢟⣛⣛⣛⣛⡻⠿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⢁⣺⣿⣿⣿⣿⣿⣿⣿⣶⠈⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠃⠼⢽⣿⣿⠿⠻⠛⠻⢿⣿⠀⣾
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠁⠀⠀⠀⠙⠁⠀⠀⢠⡀⠀⢬⠃⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⠻⡄⠀⣇⠀⠃⠀⠘⡇⠀⠄⢿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⠀⢈⢸⡿⣦⣀⢀⣀⣴⣿⡆⢸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠙⠳⠞⠁⠸⠷⠦⠈⠉⠉⠉⠀⠀⢸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠀⠀⠆⠀⠀⠤⠿⠂⠀⠀⠀⠀⢸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⡄⠀⠀⠀⠈⣠⡼⠃⠀⠀⠀⢸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠃⠀⠀⠀⠛⠉⠀⢀⠠⠀⠀⢸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠠⠀⠀⠀⠀⢤⠘⠤⠁⢰⡆⢸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⢠⠋⠤⡉⠐⡀⠀⢿⠸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠄⠀⠀⡘⢀⠆⠡⠀⠀⣈⠀
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⡐⠈⠤⢁⠂⠀⡟⢰
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⡀⠀⠀⠀⠠⠁⠂⠄⠀⣸⠁⣸
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠁⠀⠀⠀⠀⠀⠀⠀⠈⠁⢰⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⢁⠆⠀⠀⠀⢀⣐⠀⠀⠀⢀⣸⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⡁⠁⣼⡇⠀⠀⣿⣿⠀⡀⢀⣷⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏⡔⠀⣼⣿⡇⣀⠀⣿⣿⡆⣡⠘⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⡿⢡⡞⢀⣾⣿⣿⣇⠀⠀⢿⣿⡇⠁⠀⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⡏⣴⡇⢠⣾⣿⣿⣿⣿⠀⠀⢸⣿⣧⠀⠀⣿⣿⣿
+⣿⣿⣿⣿⣿⠏⣼⠍⢀⣿⣿⣿⣿⣿⣿⡀⠀⢸⣿⣿⡀⠀⣻⣿⣿
+⣿⣿⣿⡿⠋⡸⠁⢀⣾⣿⣿⣿⣿⣿⣿⣇⢀⠈⣿⣿⡇⠀⢸⣿⣿
+⣿⣿⠟⠁⠄⠀⢠⣾⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⢿⡿⠁⠀⠘⣿⣿
+⡿⠋⠀⠀⠀⣠⣾⣿⣿⣿⠿⠛⣛⣹⡏⠀⠀⠀⠀⢠⣾⣆⠀⢻⣿
+⣦⣀⡀⠀⢰⣿⣿⣿⡃⠄⠤⡶⠋⠉⣁⣠⣴⡆⠰⠛⠻⠻⠢⠘⣿
+⣿⣿⣿⣷⣿⣿⣿⣿⣿⣷⣶⣶⣾⣿⣿⣿⣯⣁⣀⡊⣘⣀⣀⣤⣿
+      */
       /* ── Screen-reader only utility ── */
       .sr-only {
         position: absolute;
@@ -201,7 +231,6 @@
         color: var(--text-light);
       }
 
-      /* FIX: visible focus ring on tabs */
       .tab:focus-visible {
         outline: 3px solid var(--purdue-gold);
         outline-offset: -3px;
@@ -405,7 +434,6 @@
         font-size: 0.9rem;
       }
 
-      /* ── Lock Indicator ── FIX: changed from div to button in HTML */
       .lock-indicator {
         position: fixed;
         bottom: 16px;
@@ -969,7 +997,6 @@
   </head>
 
   <body>
-    <!-- FIX: Skip link so keyboard users can jump past nav to main content -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
     <div id="app">
@@ -980,9 +1007,7 @@
 
       <nav aria-label="Site navigation">
         <div class="new-request-container">
-          <!-- FIX: aria-label on links whose purpose isn't fully clear from text alone -->
           <a href="/request.html" class="new-request-btn">
-            <!-- FIX: aria-hidden on decorative SVGs -->
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
               <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
             </svg>
@@ -1000,7 +1025,6 @@
         </div>
       </nav>
 
-      <!-- FIX: role="tablist" + aria-label on tab container; role="tab" + aria-selected + aria-controls on each tab -->
       <div class="tabs" role="tablist" aria-label="Print job status filters">
         <button class="tab active" role="tab" aria-selected="true"  aria-controls="pending-tab"       id="tab-pending"       data-tab="pending">Pending</button>
         <button class="tab"        role="tab" aria-selected="false" aria-controls="in-progress-tab"   id="tab-in-progress"   data-tab="in-progress">In Progress</button>
@@ -1009,14 +1033,11 @@
         <button class="tab"        role="tab" aria-selected="false" aria-controls="waiting-tab"       id="tab-waiting"       data-tab="waiting">Waiting</button>
       </div>
 
-      <!-- FIX: id="main-content" is the skip-link target; role="main" -->
       <main id="main-content" class="content">
         <div id="loading" class="loading" role="status" aria-live="polite">Loading print jobs...</div>
 
-        <!-- FIX: role="alert" surfaces errors to screen readers immediately -->
         <div id="error" class="error" role="alert" aria-live="assertive" style="display: none;"></div>
 
-        <!-- FIX: role="tabpanel" + aria-labelledby pointing to its tab button -->
         <div id="pending-tab"       class="tab-content active" role="tabpanel" aria-labelledby="tab-pending"       tabindex="0">
           <div class="job-grid" id="pending-grid"></div>
           <div id="pending-empty" class="empty-state" style="display: none;">
@@ -1074,7 +1095,6 @@
       </main>
     </div>
 
-    <!-- FIX: changed from <div> to <button> so it's keyboard-accessible; aria-label replaces title -->
     <button
       id="lock-indicator"
       class="lock-indicator"
@@ -1087,7 +1107,6 @@
     </button>
 
     <!-- Password Modal -->
-    <!-- FIX: role="dialog", aria-modal, aria-labelledby, aria-hidden toggled by JS -->
     <div
       id="password-modal"
       class="password-modal"
@@ -1101,7 +1120,6 @@
         <p class="password-modal-text" id="password-modal-desc">Enter the lab monitor password to view job details</p>
 
         <div class="password-input-group">
-          <!-- FIX: explicit <label> for the password input -->
           <label for="password-input">Password</label>
           <input
             type="password"
@@ -1110,7 +1128,6 @@
             aria-describedby="password-error"
             aria-required="true"
           />
-          <!-- FIX: role="alert" so errors are announced automatically -->
           <div id="password-error" class="password-error" role="alert" aria-live="assertive">Incorrect password. Please try again.</div>
         </div>
 
@@ -1119,7 +1136,6 @@
     </div>
 
     <!-- Job Detail Modal -->
-    <!-- FIX: role="dialog", aria-modal, aria-labelledby, aria-hidden toggled by JS -->
     <div
       id="job-modal"
       class="modal"
@@ -1131,7 +1147,6 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title" id="modal-job-name">Job Details</h2>
-          <!-- FIX: aria-label on close button instead of bare × character -->
           <button class="close-btn" id="close-modal" aria-label="Close job details">
             <span aria-hidden="true">×</span>
           </button>
@@ -1255,7 +1270,6 @@
       <div class="modal-content small">
         <div class="modal-header">
           <h2 class="modal-title" id="usage-modal-title">Record Filament Usage</h2>
-          <!-- FIX: aria-label on close button -->
           <button class="close-btn" id="close-usage-modal" aria-label="Close filament usage dialog">
             <span aria-hidden="true">×</span>
           </button>

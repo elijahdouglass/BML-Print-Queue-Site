@@ -280,7 +280,6 @@ tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     const tabName = tab.getAttribute('data-tab')!
 
-    // FIX: update aria-selected on all tabs
     tabs.forEach(t => {
       t.classList.remove('active')
       t.setAttribute('aria-selected', 'false')
@@ -305,7 +304,7 @@ tabs.forEach(tab => {
     if (next) {
       e.preventDefault()
       next.focus()
-      next.click() // activate the tab as well
+      next.click()
     }
   })
 })
