@@ -53,7 +53,6 @@ const TOKEN_KEY = 'bml_monitor_token'
 let isUnlocked = false
 let authToken: string | null = null
 
-// ── UI Elements ──────────────────────────────────────────────────────────────
 const loadingEl          = document.getElementById('loading')!
 const errorEl            = document.getElementById('error')!
 const tabs               = document.querySelectorAll<HTMLElement>('.tab')
@@ -102,6 +101,7 @@ const passwordInput      = document.getElementById('password-input') as HTMLInpu
 const passwordSubmitBtn  = document.getElementById('password-submit-btn') as HTMLButtonElement
 const passwordError      = document.getElementById('password-error')!
 const lockIndicator      = document.getElementById('lock-indicator')!
+const weeklyResetBtn     = document.getElementById('weekly-reset-btn') as HTMLButtonElement
 
 let allJobs: PrintJob[]      = []
 let currentJob: PrintJob | null = null
@@ -148,7 +148,6 @@ function openModalEl(
   trapRef.value = trap
   document.addEventListener('keydown', trap)
 
-  // Move focus into the modal
   const target = firstFocusTarget ?? el.querySelector<HTMLElement>(
     'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
   )
@@ -168,7 +167,6 @@ function closeModalEl(
     trapRef.value = null
   }
 
-  // Return focus to the element that opened the modal
   previouslyFocused?.focus()
   previouslyFocused = null
 }
@@ -234,10 +232,12 @@ function updateLockState() {
     lockIndicator.classList.add('unlocked')
     lockIndicator.setAttribute('aria-label', 'Lock lab monitor access')
     lockIndicator.setAttribute('aria-pressed', 'true')
+    weeklyResetBtn.style.display = 'inline-flex'
   } else {
     lockIndicator.classList.remove('unlocked')
     lockIndicator.setAttribute('aria-label', 'Unlock lab monitor access')
     lockIndicator.setAttribute('aria-pressed', 'false')
+    weeklyResetBtn.style.display = 'none'
   }
 }
 
@@ -266,6 +266,41 @@ lockIndicator.addEventListener('click', () => {
     if (confirm('Lock the interface? You will need to enter the password again.')) {
       logout()
     }
+  }
+})
+
+weeklyResetBtn.addEventListener('click', async () => {
+  if (!isUnlocked) return
+
+  if (!confirm('Run the weekly usage reset? This will clear all user filament usage totals.')) return
+
+  weeklyResetBtn.disabled = true
+  weeklyResetBtn.textContent = 'Resetting...'
+
+  try {
+    const res = await fetch('https://bmlprintqueue.com/api/admin/reset', {
+      method: 'POST',
+      headers: { 'x-admin-secret': 'bml2026' }
+    })
+
+    if (res.ok) {
+      alert('Weekly reset completed successfully.')
+      await loadPrintJobs()
+    } else {
+      alert(`Reset failed: HTTP ${res.status}`)
+    }
+  } catch (err) {
+    console.error('Reset error:', err)
+    alert('Reset failed. Check the console for details.')
+  } finally {
+    weeklyResetBtn.disabled = false
+    weeklyResetBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+      Weekly Reset
+    `
   }
 })
 
@@ -518,16 +553,14 @@ async function updateJobStatus(jobId: string, newStatus: string) {
 }
 
 function updateActionButtons(status: string) {
-  const isPending    = status === 'PENDING'
-  const isWaiting    = status === 'WAITING'
-  const isInProgress = status === 'IN_PROGRESS'
+  const isInProgress   = status === 'IN_PROGRESS'
   const isActionNeeded = status === 'ACTION_NEEDED'
-  const isResolved   = ['COMPLETED', 'CANCELLED', 'FAILED'].includes(status)
+  const isResolved     = ['COMPLETED', 'CANCELLED', 'FAILED'].includes(status)
 
-  startJobBtn.disabled    = isInProgress || isResolved
-  completeJobBtn.disabled = !isInProgress
+  startJobBtn.disabled     = isInProgress || isResolved
+  completeJobBtn.disabled  = !isInProgress
   actionNeededBtn.disabled = isActionNeeded || isResolved
-  cancelJobBtn.disabled   = isResolved
+  cancelJobBtn.disabled    = isResolved
 }
 
 async function loadPrintJobs() {
@@ -556,11 +589,11 @@ async function loadPrintJobs() {
 }
 
 function renderAllTabs() {
-  renderTab(allJobs.filter(j => j.status === 'PENDING'),                                                         pendingGrid,      pendingEmpty)
-  renderTab(allJobs.filter(j => j.status === 'ACTION_NEEDED'),                                                   actionNeededGrid, actionNeededEmpty)
-  renderTab(allJobs.filter(j => j.status === 'WAITING'),                                                         waitingGrid,      waitingEmpty)
-  renderTab(allJobs.filter(j => j.status === 'IN_PROGRESS'),                                                     inProgressGrid,   inProgressEmpty)
-  renderTab(allJobs.filter(j => ['COMPLETED','CANCELLED','FAILED'].includes(j.status)),                          resolvedGrid,     resolvedEmpty)
+  renderTab(allJobs.filter(j => j.status === 'PENDING'),                                        pendingGrid,      pendingEmpty)
+  renderTab(allJobs.filter(j => j.status === 'ACTION_NEEDED'),                                  actionNeededGrid, actionNeededEmpty)
+  renderTab(allJobs.filter(j => j.status === 'WAITING'),                                        waitingGrid,      waitingEmpty)
+  renderTab(allJobs.filter(j => j.status === 'IN_PROGRESS'),                                    inProgressGrid,   inProgressEmpty)
+  renderTab(allJobs.filter(j => ['COMPLETED','CANCELLED','FAILED'].includes(j.status)),         resolvedGrid,     resolvedEmpty)
 }
 
 function renderTab(jobs: PrintJob[], gridEl: HTMLElement, emptyEl: HTMLElement) {
